@@ -39,7 +39,6 @@ include_directories(${PROJECT_SOURCE_DIR} ${TSKIT_DIR})
 add_subdirectory(${PROJECT_SOURCE_DIR})
 add_subdirectory(${GZSTREAM_DIR})
 add_subdirectory(${TSKIT_DIR})
-add_subdirectory(${TEST_DIR})
 add_subdirectory(${PIPELINE_DIR})
 add_subdirectory(${EVALUATE_DIR})
 add_subdirectory(${TREEVIEW_DIR})
@@ -47,8 +46,9 @@ add_subdirectory(${FILEFORMATS_DIR})
 add_subdirectory(${EXTRACT_DIR})
 
 # tests
+find_package(Catch2 3 REQUIRED)
 add_executable(Tests ${TEST_DIR}/Tests.cpp)
-target_link_libraries(Tests relateStatic UnitTest)
+target_link_libraries(Tests PRIVATE relateStatic Catch2::Catch2WithMain)
 
 enable_testing()
 add_test(UnitTest ${CMAKE_BINARY_DIR}/Tests)

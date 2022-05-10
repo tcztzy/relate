@@ -1,5 +1,5 @@
-#include "catch_amalgamated.hpp"
 #include <algorithm>
+#include <catch2/catch_test_macros.hpp>
 
 #include "data.hpp"
 #include "anc.hpp"
