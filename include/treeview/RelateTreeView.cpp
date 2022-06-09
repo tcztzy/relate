@@ -1,6 +1,6 @@
 #include "Treeview.cpp"
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <string>
 
 int main(int argc, char* argv[]){
@@ -22,25 +22,25 @@ int main(int argc, char* argv[]){
     ("o,output", "Filename for updated anc and mut files without file extension.", cxxopts::value<std::string>())
     ("seed", "Seed for MCMC in branch lengths estimation.", cxxopts::value<int>());
   
-  options.parse(argc, argv);
+  auto result = options.parse(argc, argv);
 
-  std::string mode = options["mode"].as<std::string>();
+  std::string mode = result["mode"].as<std::string>();
 
   if(!mode.compare("TreeView")){
 
-    TreeView(options);
+    TreeView(options, result);
 
 	}else if(!mode.compare("TreeViewSample")){
 
-		TreeViewSample(options);
+		TreeViewSample(options, result);
 
 	}else if(!mode.compare("MutationsOnBranches")){
 
-    MutationsOnBranches(options);
+    MutationsOnBranches(options, result);
 
   }else if(!mode.compare("BranchesBelowMutation")){
 
-    BranchesBelowMutation(options);
+    BranchesBelowMutation(options, result);
 
   }else{
 
@@ -52,11 +52,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }

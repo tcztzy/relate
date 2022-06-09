@@ -7,7 +7,7 @@
 #include <string>
 
 #include "gzstream.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include "data.hpp"
 #include "anc.hpp"
 #include "branch_length_estimator.hpp"
@@ -32,15 +32,15 @@ void ShowProgress(int progress){
 
 }
 
-int ReEstimateBranchLengths(cxxopts::Options& options){
+int ReEstimateBranchLengths(cxxopts::ParseResult& result){
 
   int seed;
-  if(!options.count("seed")){
+  if(!result.count("seed")){
     seed = std::time(0) + getpid();
   }else{
-    seed = options["seed"].as<int>();
+    seed = result["seed"].as<int>();
 		srand(seed);
-		std::string name = options["input"].as<std::string>();
+		std::string name = result["input"].as<std::string>();
 		int tmp = 0;
 		for(int i = 0; i < name.size(); i++){
 			if(std::isdigit(name[i])) tmp += name[i]-48; 
@@ -52,14 +52,14 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 	srand(seed);
 
   int Ne = 3e4;
-  double mutation_rate = options["mutation_rate"].as<float>();
+  double mutation_rate = result["mutation_rate"].as<float>();
   std::string line;
   double tmp;
 
   //parse data
   int N;
-  igzstream is_N(options["input"].as<std::string>() + ".anc");
-  if(is_N.fail()) is_N.open(options["input"].as<std::string>() + ".anc.gz");
+  igzstream is_N(result["input"].as<std::string>() + ".anc");
+  if(is_N.fail()) is_N.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_N.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
@@ -70,8 +70,8 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 
   //make this more efficient
   int L = 0;
-  if(options.count("dist")){
-    igzstream is_L(options["dist"].as<std::string>());
+  if(result.count("dist")){
+    igzstream is_L(result["dist"].as<std::string>());
     if(is_L.fail()){
       std::cerr << "Error while opening .dist file." << std::endl;
       exit(1);
@@ -82,8 +82,8 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 		L--;
 		is_L.close();
   }else{
-    igzstream is_L(options["input"].as<std::string>() + ".mut");
-    if(is_L.fail()) is_L.open(options["input"].as<std::string>() + ".mut.gz");
+    igzstream is_L(result["input"].as<std::string>() + ".mut");
+    if(is_L.fail()) is_L.open(result["input"].as<std::string>() + ".mut.gz");
     if(is_L.fail()){
       std::cerr << "Error while opening .mut file." << std::endl;
       exit(1);
@@ -97,13 +97,13 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 
   Data data(N, L, Ne, mutation_rate);
   Mutations mut(data);
-  mut.Read(options["input"].as<std::string>() + ".mut");
+  mut.Read(result["input"].as<std::string>() + ".mut");
 
   data.dist.resize(L);
-  if(options.count("dist")){
-    igzstream is_dist(options["dist"].as<std::string>());
+  if(result.count("dist")){
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
-      std::cerr << "Error while opening " << options["dist"].as<std::string>() << std::endl;
+      std::cerr << "Error while opening " << result["dist"].as<std::string>() << std::endl;
       exit(1);
     }
     getline(is_dist, line); 
@@ -123,15 +123,15 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Reinferring branch lengths for " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Reinferring branch lengths for " << result["input"].as<std::string>() << " ..." << std::endl;
 
 
   // read epochs and population size 
-  igzstream is(options["coal"].as<std::string>()); 
+  igzstream is(result["coal"].as<std::string>()); 
   if(is.fail()){
-    is.open(options["coal"].as<std::string>() + ".gz");
+    is.open(result["coal"].as<std::string>() + ".gz");
     if(is.fail()){ 
-      std::cerr << "Error while opening " << options["coal"].as<std::string>() << "(.gz)." << std::endl;
+      std::cerr << "Error while opening " << result["coal"].as<std::string>() << "(.gz)." << std::endl;
       exit(1);
     }
   } 
@@ -173,9 +173,9 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
   } 
 
   if(0){
-    if(options.count("mrate")){
+    if(result.count("mrate")){
       //multiply by mutation rate
-      is.open(options["mrate"].as<std::string>());
+      is.open(result["mrate"].as<std::string>());
       double mepoch, mrate;
       int e = 0;
       while(getline(is, line)){
@@ -205,7 +205,7 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
   //Infer Branchlengths
 
   AncesTree anc;
-  anc.Read(options["input"].as<std::string>() + ".anc");
+  anc.Read(result["input"].as<std::string>() + ".anc");
 
   int num_trees = anc.seq.size();
   int progress_interval = (int)(num_trees/100.0) + 1;
@@ -244,7 +244,7 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
   ShowProgress(100);
   std::cerr << std::endl;
   //Dump to file
-  anc.Dump(options["output"].as<std::string>() + ".anc");
+  anc.Dump(result["output"].as<std::string>() + ".anc");
 
   ////////////////////////// Update mutation file
 
@@ -282,7 +282,7 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 			}
     }
   }
-  mut.Dump(options["output"].as<std::string>() + ".mut"); 
+  mut.Dump(result["output"].as<std::string>() + ".mut"); 
 
   /////////////////////////////////////////////
   //Resource Usage
@@ -303,15 +303,15 @@ int ReEstimateBranchLengths(cxxopts::Options& options){
 
 ////////////////////////////
 
-int SampleBranchLengths(cxxopts::Options& options){
+int SampleBranchLengths(cxxopts::ParseResult& result){
 
 	int seed;
-	if(!options.count("seed")){
+	if(!result.count("seed")){
 		seed = std::time(0) + getpid();
 	}else{
-		seed = options["seed"].as<int>();
+		seed = result["seed"].as<int>();
 		srand(seed);
-		std::string name = options["input"].as<std::string>();
+		std::string name = result["input"].as<std::string>();
 		int tmp = 0;
 		for(int i = 0; i < name.size(); i++){
 			if(std::isdigit(name[i])) tmp += name[i]-48; 
@@ -323,14 +323,14 @@ int SampleBranchLengths(cxxopts::Options& options){
 	srand(seed);
 
   int Ne = 2e4;
-  double mutation_rate = options["mutation_rate"].as<float>();
+  double mutation_rate = result["mutation_rate"].as<float>();
   std::string line;
   double tmp;
 
   //parse data
   int N;
-  igzstream is_N(options["input"].as<std::string>() + ".anc");
-  if(is_N.fail()) is_N.open(options["input"].as<std::string>() + ".anc.gz");
+  igzstream is_N(result["input"].as<std::string>() + ".anc");
+  if(is_N.fail()) is_N.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_N.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
@@ -341,8 +341,8 @@ int SampleBranchLengths(cxxopts::Options& options){
 
   //make this more efficient
   int L = 0;
-  if(options.count("dist")){
-    igzstream is_L(options["dist"].as<std::string>());
+  if(result.count("dist")){
+    igzstream is_L(result["dist"].as<std::string>());
     if(is_L.fail()){
       std::cerr << "Error while opening .dist file." << std::endl;
       exit(1);
@@ -353,8 +353,8 @@ int SampleBranchLengths(cxxopts::Options& options){
 		L--;
 		is_L.close();
   }else{
-    igzstream is_L(options["input"].as<std::string>() + ".mut");
-    if(is_L.fail()) is_L.open(options["input"].as<std::string>() + ".mut.gz");
+    igzstream is_L(result["input"].as<std::string>() + ".mut");
+    if(is_L.fail()) is_L.open(result["input"].as<std::string>() + ".mut.gz");
     if(is_L.fail()){
       std::cerr << "Error while opening .mut file." << std::endl;
       exit(1);
@@ -370,13 +370,13 @@ int SampleBranchLengths(cxxopts::Options& options){
   int root = 2*N-2;
 
   Mutations mut(data);
-  mut.Read(options["input"].as<std::string>() + ".mut");
+  mut.Read(result["input"].as<std::string>() + ".mut");
   data.dist.resize(L);
   std::vector<int> bp(L);
-  if(options.count("dist")){
-    igzstream is_dist(options["dist"].as<std::string>());
+  if(result.count("dist")){
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
-      std::cerr << "Error while opening " << options["dist"].as<std::string>() << std::endl;
+      std::cerr << "Error while opening " << result["dist"].as<std::string>() << std::endl;
       exit(1);
     }
     getline(is_dist, line); 
@@ -399,14 +399,14 @@ int SampleBranchLengths(cxxopts::Options& options){
 
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Sampling branch lengths for " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Sampling branch lengths for " << result["input"].as<std::string>() << " ..." << std::endl;
 
   // read epochs and population size 
-  igzstream is(options["coal"].as<std::string>()); 
+  igzstream is(result["coal"].as<std::string>()); 
   if(is.fail()){
-    is.open(options["coal"].as<std::string>() + ".gz");
+    is.open(result["coal"].as<std::string>() + ".gz");
     if(is.fail()){ 
-      std::cerr << "Error while opening " << options["coal"].as<std::string>() << "(.gz)." << std::endl;
+      std::cerr << "Error while opening " << result["coal"].as<std::string>() << "(.gz)." << std::endl;
       exit(1);
     }
   } 
@@ -448,9 +448,9 @@ int SampleBranchLengths(cxxopts::Options& options){
   } 
 
   if(0){
-  if(options.count("mrate")){
+  if(result.count("mrate")){
     //multiply by mutation rate
-    is.open(options["mrate"].as<std::string>());
+    is.open(result["mrate"].as<std::string>());
     double mepoch, mrate;
     int e = 0;
     while(getline(is, line)){
@@ -472,7 +472,7 @@ int SampleBranchLengths(cxxopts::Options& options){
   //Infer Branchlengths
 
   AncesTree anc;
-  anc.Read(options["input"].as<std::string>() + ".anc");
+  anc.Read(result["input"].as<std::string>() + ".anc");
 
   //////////////////////////////////////////// Read Tree ///////////////////////////////////
 
@@ -485,10 +485,10 @@ int SampleBranchLengths(cxxopts::Options& options){
 
   //need to make these three variables to arguments
   int num_proposals = 1000*std::max(data.N/10.0, 10.0);
-  if(options.count("num_proposals")){
-    num_proposals = options["num_proposals"].as<int>();
+  if(result.count("num_proposals")){
+    num_proposals = result["num_proposals"].as<int>();
   }
-  int num_samples   = options["num_samples"].as<int>();
+  int num_samples   = result["num_samples"].as<int>();
   std::string chrid = "chr";
 
   if(num_samples < 1){
@@ -503,8 +503,8 @@ int SampleBranchLengths(cxxopts::Options& options){
   //////////output files
 
   std::string format = "a";
-  if(options.count("format")){
-    format = options["format"].as<std::string>();
+  if(result.count("format")){
+    format = result["format"].as<std::string>();
     if(format != "a" && format != "n"){
       std::cerr << "Error: output format doesn't exist." << std::endl;
       exit(1);
@@ -521,10 +521,10 @@ int SampleBranchLengths(cxxopts::Options& options){
   std::ofstream os, os_sites;
   std::string filename;
   if(format == "n"){
-    filename = options["output"].as<std::string>() + ".newick";
+    filename = result["output"].as<std::string>() + ".newick";
     os.open(filename);
     os << "#chrom\tchromStart\tchromEnd\tMCMC_sample\ttree" << std::endl;
-    os_sites.open(options["output"].as<std::string>() + ".sites");
+    os_sites.open(result["output"].as<std::string>() + ".sites");
 
     os_sites << "NAMES\t";
     for(int i = 0; i < data.N; i++){
@@ -535,7 +535,7 @@ int SampleBranchLengths(cxxopts::Options& options){
       os_sites << "REGION\t" << chrid << "\t" << mut.info[0].pos << "\t" << mut.info[mut.info.size()-1].pos + 1 << "\n";
     }
   }else{
-    filename = options["output"].as<std::string>() + ".anc";
+    filename = result["output"].as<std::string>() + ".anc";
     os.open(filename);
     os << "NUM_HAPLOTYPES " << ((*anc.seq.begin()).tree.nodes.size() + 1)/2 << " ";
     for(std::vector<double>::iterator it_sample_ages = anc.sample_ages.begin(); it_sample_ages != anc.sample_ages.end(); it_sample_ages++){
@@ -787,7 +787,7 @@ int SampleBranchLengths(cxxopts::Options& options){
 			*it_sample_ages /= data.Ne;
 		}
     Mutations mut(data);
-    mut.Read(options["input"].as<std::string>() + ".mut");
+    mut.Read(result["input"].as<std::string>() + ".mut");
 
     CorrTrees::iterator it_anc = anc.seq.begin();
     std::vector<float> coordinates(2*data.N-1);
@@ -825,7 +825,7 @@ int SampleBranchLengths(cxxopts::Options& options){
 				}
       }
     }
-    mut.Dump(options["output"].as<std::string>() + ".mut"); 
+    mut.Dump(result["output"].as<std::string>() + ".mut"); 
   }
 
   /////////////////////////////////////////////
@@ -893,15 +893,15 @@ GetCoords(int node, Tree& tree, int branch, float Ne, char m, std::vector<float>
 
 }
 
-int SampleBranchLengthsBinary(cxxopts::Options& options){
+int SampleBranchLengthsBinary(cxxopts::ParseResult& result){
 
 	int seed;
-	if(!options.count("seed")){
+	if(!result.count("seed")){
 		seed = std::time(0) + getpid();
 	}else{
-		seed = options["seed"].as<int>();
+		seed = result["seed"].as<int>();
 		srand(seed);
-		std::string name = options["input"].as<std::string>();
+		std::string name = result["input"].as<std::string>();
 		int tmp = 0;
 		for(int i = 0; i < name.size(); i++){
 			if(std::isdigit(name[i])) tmp += name[i] - 48; 
@@ -913,14 +913,14 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
 	srand(seed);
 
   int Ne = 3e4;
-  double mutation_rate = options["mutation_rate"].as<float>();
+  double mutation_rate = result["mutation_rate"].as<float>();
   std::string line;
   double tmp;
 
   //parse data
   int N;
-  igzstream is_N(options["input"].as<std::string>() + ".anc");
-  if(is_N.fail()) is_N.open(options["input"].as<std::string>() + ".anc.gz");
+  igzstream is_N(result["input"].as<std::string>() + ".anc");
+  if(is_N.fail()) is_N.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_N.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
@@ -931,8 +931,8 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
 
   //make this more efficient
   int L = 0;
-  if(options.count("dist")){
-    igzstream is_L(options["dist"].as<std::string>());
+  if(result.count("dist")){
+    igzstream is_L(result["dist"].as<std::string>());
     if(is_L.fail()){
       std::cerr << "Error while opening .dist file." << std::endl;
       exit(1);
@@ -943,8 +943,8 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
 		L--;
 		is_L.close();
   }else{
-    igzstream is_L(options["input"].as<std::string>() + ".mut");
-    if(is_L.fail()) is_L.open(options["input"].as<std::string>() + ".mut.gz");
+    igzstream is_L(result["input"].as<std::string>() + ".mut");
+    if(is_L.fail()) is_L.open(result["input"].as<std::string>() + ".mut.gz");
     if(is_L.fail()){
       std::cerr << "Error while opening .mut file." << std::endl;
       exit(1);
@@ -959,7 +959,7 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
   Data data(N, L, Ne, mutation_rate);
 
   Mutations mut(data);
-  mut.Read(options["input"].as<std::string>() + ".mut");
+  mut.Read(result["input"].as<std::string>() + ".mut");
   int num_mapping_SNPs = 0;
   for(Muts::iterator it_mut = mut.info.begin(); it_mut != mut.info.end(); it_mut++){
     if((*it_mut).branch.size() <= 1) num_mapping_SNPs++;
@@ -971,10 +971,10 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
 
   data.dist.resize(L);
   std::vector<int> bp(L);
-  if(options.count("dist")){
-    igzstream is_dist(options["dist"].as<std::string>());
+  if(result.count("dist")){
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
-      std::cerr << "Error while opening " << options["dist"].as<std::string>() << std::endl;
+      std::cerr << "Error while opening " << result["dist"].as<std::string>() << std::endl;
       exit(1);
     }
     getline(is_dist, line); 
@@ -996,14 +996,14 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
   }
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Sampling branch lengths for " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Sampling branch lengths for " << result["input"].as<std::string>() << " ..." << std::endl;
 
   // read epochs and population size 
-  igzstream is(options["coal"].as<std::string>()); 
+  igzstream is(result["coal"].as<std::string>()); 
   if(is.fail()){
-    is.open(options["coal"].as<std::string>() + ".gz");
+    is.open(result["coal"].as<std::string>() + ".gz");
     if(is.fail()){ 
-      std::cerr << "Error while opening " << options["coal"].as<std::string>() << "(.gz)." << std::endl;
+      std::cerr << "Error while opening " << result["coal"].as<std::string>() << "(.gz)." << std::endl;
       exit(1);
     }
   } 
@@ -1045,9 +1045,9 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
   } 
 
   if(0){
-    if(options.count("mrate")){
+    if(result.count("mrate")){
       //multiply by mutation rate
-      is.open(options["mrate"].as<std::string>());
+      is.open(result["mrate"].as<std::string>());
       double mepoch, mrate;
       int e = 0;
       while(getline(is, line)){
@@ -1073,7 +1073,7 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
   float num_bases_tree_persists = 0.0;
   int root = 2*data.N - 2;
 
-  AncMutIterators ancmut(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+  AncMutIterators ancmut(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   int num_trees = ancmut.NumTrees();
 
   //////////////////////////////////////////// Read Tree ///////////////////////////////////
@@ -1086,14 +1086,14 @@ int SampleBranchLengthsBinary(cxxopts::Options& options){
 
   //need to make these three variables to arguments
   int num_proposals = 1000*std::max(data.N/10.0, 10.0);
-  if(options.count("num_proposals")){
-    num_proposals = options["num_proposals"].as<int>();
+  if(result.count("num_proposals")){
+    num_proposals = result["num_proposals"].as<int>();
   }
-  int num_samples   = options["num_samples"].as<int>();
+  int num_samples   = result["num_samples"].as<int>();
   std::string chrid = "chr";
 
   //prepare files for output
-  std::string filename = options["output"].as<std::string>() + ".timeb";
+  std::string filename = result["output"].as<std::string>() + ".timeb";
   FILE* fp = fopen(filename.c_str(), "wb");
   //write number of trees and number of proposals per SNP
   //std::cerr << num_mapping_SNPs << " " << sizeof(int) << std::endl;

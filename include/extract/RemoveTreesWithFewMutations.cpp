@@ -9,34 +9,34 @@
 
 #include "collapsed_matrix.hpp"
 #include "anc.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 void
-GetDistFromMut(cxxopts::Options& options){
+GetDistFromMut(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("mut") || !options.count("output")){
+  if(!result.count("mut") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: mut, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Extract dist file from mut." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Extracting dist file from " << options["mut"].as<std::string>() << " ... " << std::endl;
+  std::cerr << "Extracting dist file from " << result["mut"].as<std::string>() << " ... " << std::endl;
 
   Mutations mut;
-  mut.Read(options["mut"].as<std::string>());
+  mut.Read(result["mut"].as<std::string>());
 
  
-  FILE* fp_dist = fopen((options["output"].as<std::string>() + ".dist").c_str(), "w");
+  FILE* fp_dist = fopen((result["output"].as<std::string>() + ".dist").c_str(), "w");
   fprintf(fp_dist, "#pos dist\n");
   for(std::vector<SNPInfo>::iterator it_mut = mut.info.begin(); it_mut != mut.info.end();){
     fprintf(fp_dist, "%d %d\n", (*it_mut).pos, (*it_mut).dist);
@@ -62,28 +62,28 @@ GetDistFromMut(cxxopts::Options& options){
 }
 
 void
-RemoveTreesWithFewMutations(cxxopts::Options& options){
+RemoveTreesWithFewMutations(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
   
   bool help = false;
-  if(!options.count("threshold") || !options.count("anc") || !options.count("mut") || !options.count("output")){
+  if(!result.count("threshold") || !result.count("anc") || !result.count("mut") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: threshold, anc, mut, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Estimate population size using coalescent rate." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Removing trees with few mutations from " << options["mut"].as<std::string>() << " ... " << std::endl; 
+  std::cerr << "Removing trees with few mutations from " << result["mut"].as<std::string>() << " ... " << std::endl; 
  
   AncesTree anc;
-  AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+  AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
   int N = ancmut.NumTips();
   int L = ancmut.NumSnps();
   int num_trees = ancmut.NumTrees();
@@ -96,13 +96,13 @@ RemoveTreesWithFewMutations(cxxopts::Options& options){
   Data data(N,L);
 
   Mutations mut;
-  mut.Read(options["mut"].as<std::string>());
+  mut.Read(result["mut"].as<std::string>());
 
   Mutations mut_subset;
   mut_subset.header = mut.header;
 
   int num_mutations_threshold, num_mutations;
-  double threshold = std::max(0.0f, std::min(1.0f, options["threshold"].as<float>()));
+  double threshold = std::max(0.0f, std::min(1.0f, result["threshold"].as<float>()));
   std::vector<int> num_muts(ancmut.NumTrees(), 0), num_muts_sorted;
   std::vector<int>::iterator it_num_muts = num_muts.begin();
 
@@ -122,7 +122,7 @@ RemoveTreesWithFewMutations(cxxopts::Options& options){
   num_muts_sorted = num_muts;
   std::sort(num_muts_sorted.begin(), num_muts_sorted.end());
   num_mutations_threshold = num_muts_sorted[(int)(threshold*num_muts.size())];
-  ancmut.OpenFiles(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+  ancmut.OpenFiles(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 
   //count the number of mutatinos on each tree.
   num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
@@ -158,8 +158,8 @@ RemoveTreesWithFewMutations(cxxopts::Options& options){
   }
 
   // dump anc and mut
-  anc.Dump(options["output"].as<std::string>() + ".anc");
-  mut_subset.Dump(options["output"].as<std::string>() + ".mut");
+  anc.Dump(result["output"].as<std::string>() + ".anc");
+  mut_subset.Dump(result["output"].as<std::string>() + ".mut");
 
   /////////////////////////////////////////////
   //Resource Usage

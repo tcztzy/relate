@@ -5,23 +5,23 @@
 #include <string>
 
 #include "gzstream.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include "data.hpp"
 #include "anc.hpp"
 
 void
-DivideAncMut(cxxopts::Options& options){
+DivideAncMut(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("threads") || !options.count("anc") || !options.count("mut") || !options.count("output")){
+  if(!result.count("threads") || !result.count("anc") || !result.count("mut") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: threads, anc, mut, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Dividing .anc/.mut files into smaller files for parallelization." << std::endl;
     exit(0);
@@ -32,8 +32,8 @@ DivideAncMut(cxxopts::Options& options){
 
   int N, num_trees;
 
-  igzstream is_N(options["anc"].as<std::string>());
-  if(is_N.fail()) is_N.open(options["anc"].as<std::string>() + ".gz");
+  igzstream is_N(result["anc"].as<std::string>());
+  if(is_N.fail()) is_N.open(result["anc"].as<std::string>() + ".gz");
   if(is_N.fail()){
     std::cerr << "Error opening .anc file" << std::endl;
     exit(1);
@@ -66,8 +66,8 @@ DivideAncMut(cxxopts::Options& options){
   const int num_trees_check = num_trees;
     
   int L = 0;
-  igzstream is_L(options["mut"].as<std::string>());
-  if(is_L.fail()) is_L.open(options["mut"].as<std::string>() + ".gz");
+  igzstream is_L(result["mut"].as<std::string>());
+  if(is_L.fail()) is_L.open(result["mut"].as<std::string>() + ".gz");
   if(is_L.fail()){
     std::cerr << "Error opening .mut file" << std::endl;
     exit(1);
@@ -81,21 +81,21 @@ DivideAncMut(cxxopts::Options& options){
 
   Data data(N,L);
 
-  int num_threads = options["threads"].as<int>();
+  int num_threads = result["threads"].as<int>();
   //divide anc/mut into chunks with ((int) num_trees/(100.0 + num_threads)) + 1 trees each
   int num_trees_per_chunk = ((int) num_trees/(5.0 * num_threads)) + 1;
   if(num_trees_per_chunk < 10) num_trees_per_chunk = 10;
 
-  igzstream is(options["anc"].as<std::string>());
-  if(is.fail()) is.open(options["anc"].as<std::string>() + ".gz");
+  igzstream is(result["anc"].as<std::string>());
+  if(is.fail()) is.open(result["anc"].as<std::string>() + ".gz");
   if(is.fail()){
     std::cerr << "Error opening .anc file" << std::endl;
     exit(1);
   }
   assert(getline(is,line));
   assert(getline(is,line));
-  igzstream is_mut(options["mut"].as<std::string>());
-  if(is_mut.fail()) is_mut.open(options["mut"].as<std::string>() + ".gz");
+  igzstream is_mut(result["mut"].as<std::string>());
+  if(is_mut.fail()) is_mut.open(result["mut"].as<std::string>() + ".gz");
   if(is_mut.fail()){
     std::cerr << "Error opening .mut file" << std::endl;
     exit(1);
@@ -104,14 +104,14 @@ DivideAncMut(cxxopts::Options& options){
   assert(getline(is_mut, header));
 
   Mutations mut;
-  mut.Read(options["mut"].as<std::string>());
+  mut.Read(result["mut"].as<std::string>());
 
   i = 0;
   int snp = 0, tree_index = mut.info[snp].tree;
 
   while(num_trees > num_trees_per_chunk + 10){
-    ogzstream os(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz");
-    ogzstream os_mut(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz");
+    ogzstream os(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz");
+    ogzstream os_mut(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz");
 
     os << "NUM_HAPLOTYPES " << data.N << " ";
     if(sample_ages.size() > 0){
@@ -149,8 +149,8 @@ DivideAncMut(cxxopts::Options& options){
   }
 
   //last chunk
-  ogzstream os(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz");
-  ogzstream os_mut(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz");
+  ogzstream os(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz");
+  ogzstream os_mut(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz");
 
   os << "NUM_HAPLOTYPES " << data.N << " ";
   if(sample_ages.size() > 0){
@@ -185,9 +185,9 @@ DivideAncMut(cxxopts::Options& options){
   os.close();
   os_mut.close();
 
-  std::ofstream os_param(options["output"].as<std::string>() + ".param");
+  std::ofstream os_param(result["output"].as<std::string>() + ".param");
   if(os_param.fail()){
-    std::cerr << "Error while opening " << options["output"].as<std::string>() + ".param" << std::endl;
+    std::cerr << "Error while opening " << result["output"].as<std::string>() + ".param" << std::endl;
     exit(1);
   }
   os_param << "NUM_HAPLOTYPES NUM_SNPS NUM_TREES NUM_CHUNKS\n";
@@ -211,18 +211,18 @@ DivideAncMut(cxxopts::Options& options){
 }
 
 void
-CombineAncMut(cxxopts::Options& options){
+CombineAncMut(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Combining .anc/.mut files into one file." << std::endl;
     exit(0);
@@ -235,9 +235,9 @@ CombineAncMut(cxxopts::Options& options){
   Data data;
   int num_trees, num_chunks;
 
-  std::ifstream is_param(options["output"].as<std::string>() + ".param");
+  std::ifstream is_param(result["output"].as<std::string>() + ".param");
   if(is_param.fail()){
-    std::cerr << "Unable to combine anc/mut files because file " << options["output"].as<std::string>() + ".param" << " has been lost." << std::endl;
+    std::cerr << "Unable to combine anc/mut files because file " << result["output"].as<std::string>() + ".param" << " has been lost." << std::endl;
     std::cerr << "You can manually create this file which has the following header followed by the corresponding entries on the next line" << std::endl;
     std::cerr << "NUM_HAPLOTYPES NUM_SNPS NUM_TREES NUM_CHUNKS" << std::endl;
     std::cerr << std::endl;
@@ -247,14 +247,14 @@ CombineAncMut(cxxopts::Options& options){
   sscanf(line.c_str(), "%d %d %d %d", &data.N, &data.L, &num_trees, &num_chunks);
   is_param.close();
 
-  ogzstream os(options["output"].as<std::string>() + ".anc.gz");
-  ogzstream os_mut(options["output"].as<std::string>() + ".mut.gz");
+  ogzstream os(result["output"].as<std::string>() + ".anc.gz");
+  ogzstream os_mut(result["output"].as<std::string>() + ".mut.gz");
 
   for(int i = 0; i < num_chunks; i++){
     bool is_gzipped = false;
-    igzstream is(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc");
+    igzstream is(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc");
     if(is.fail()){
-      is.open(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz");
+      is.open(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz");
       is_gzipped = true;
     }
     if(is.fail()){
@@ -275,15 +275,15 @@ CombineAncMut(cxxopts::Options& options){
     }
     is.close();
     if(is_gzipped){
-      std::remove((options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz").c_str());
+      std::remove((result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc.gz").c_str());
     }else{
-      std::remove((options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc").c_str());
+      std::remove((result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".anc").c_str());
     } 
 
     is_gzipped = false;
-    igzstream is_mut(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut");
+    igzstream is_mut(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut");
     if(is_mut.fail()){
-      is_mut.open(options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz");
+      is_mut.open(result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz");
       is_gzipped = true;
     }
     if(is_mut.fail()){
@@ -298,15 +298,15 @@ CombineAncMut(cxxopts::Options& options){
     is_mut.close();
 
     if(is_gzipped){
-      std::remove((options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz").c_str());
+      std::remove((result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut.gz").c_str());
     }else{
-      std::remove((options["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut").c_str());
+      std::remove((result["output"].as<std::string>() + "_chr" + std::to_string(i) + ".mut").c_str());
     }
   }
   os.close();
   os_mut.close();
 
-  std::remove((options["output"].as<std::string>() + ".param").c_str());
+  std::remove((result["output"].as<std::string>() + ".param").c_str());
 
   /////////////////////////////////////////////
   //Resource Usage
@@ -325,27 +325,27 @@ CombineAncMut(cxxopts::Options& options){
 }
 
 void
-AncMutForSubregion(cxxopts::Options& options){
+AncMutForSubregion(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("anc") || !options.count("mut") || !options.count("first_bp") || !options.count("last_bp") || !options.count("output")){
+  if(!result.count("anc") || !result.count("mut") || !result.count("first_bp") || !result.count("last_bp") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: anc, mut, first_bp, last_bp, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Extracting .anc/.mut files for subregion." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Extracting .anc/.mut files for subregion " << options["first_bp"].as<int>() << " - " << options["last_bp"].as<int>() << "..." << std::endl;
+  std::cerr << "Extracting .anc/.mut files for subregion " << result["first_bp"].as<int>() << " - " << result["last_bp"].as<int>() << "..." << std::endl;
 
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	int num_trees = ancmut.NumTrees();
 	int L = ancmut.NumSnps();
@@ -355,20 +355,20 @@ AncMutForSubregion(cxxopts::Options& options){
 
   Data data(N,L);
 
-  int first_bp = options["first_bp"].as<int>();
-  int last_bp  = options["last_bp"].as<int>();
+  int first_bp = result["first_bp"].as<int>();
+  int last_bp  = result["last_bp"].as<int>();
 
   std::string line;
-  igzstream is(options["anc"].as<std::string>());
-  if(is.fail()) is.open(options["anc"].as<std::string>() + ".gz");
+  igzstream is(result["anc"].as<std::string>());
+  if(is.fail()) is.open(result["anc"].as<std::string>() + ".gz");
   if(is.fail()){
     std::cerr << "Error opening .anc file" << std::endl;
     exit(1);
   }
   assert(getline(is,line));
   assert(getline(is,line));
-  igzstream is_mut(options["mut"].as<std::string>());
-  if(is_mut.fail()) is_mut.open(options["mut"].as<std::string>() + ".gz");
+  igzstream is_mut(result["mut"].as<std::string>());
+  if(is_mut.fail()) is_mut.open(result["mut"].as<std::string>() + ".gz");
   if(is_mut.fail()){
     std::cerr << "Error opening .mut file" << std::endl;
     exit(1);
@@ -378,14 +378,14 @@ AncMutForSubregion(cxxopts::Options& options){
   is_mut.close();
 
   //output
-  std::ofstream os(options["output"].as<std::string>() + ".anc");
+  std::ofstream os(result["output"].as<std::string>() + ".anc");
   if(os.fail()){
-    std::cerr << "Error opening " << options["output"].as<std::string>() + ".anc" << std::endl;
+    std::cerr << "Error opening " << result["output"].as<std::string>() + ".anc" << std::endl;
     exit(1);
   }
 
   Mutations mut;
-  mut.Read(options["mut"].as<std::string>());
+  mut.Read(result["mut"].as<std::string>());
   Mutations mut_subregion;
   mut_subregion.header = header;
 
@@ -417,7 +417,7 @@ AncMutForSubregion(cxxopts::Options& options){
     }
   }
 
-  mut_subregion.Dump(options["output"].as<std::string>() + ".mut");
+  mut_subregion.Dump(result["output"].as<std::string>() + ".mut");
 
   int tree_index = mut.info[0].tree;
   assert(tree_index == 0);

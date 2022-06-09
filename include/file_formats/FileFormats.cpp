@@ -12,21 +12,21 @@
 #include "data.hpp"
 #include "sample.hpp"
 #include "mutations.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 void
-ConvertFromHapLegendSample(cxxopts::Options& options){
+ConvertFromHapLegendSample(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("haps") || !options.count("sample")){
+  if( !result.count("input") || !result.count("haps") || !result.count("sample")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, haps, sample. Optional: chr." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Converts hap/legend/sample file format (Impute2) to haps/sample file format (Shapeit).." << std::endl;
     exit(0);
@@ -36,8 +36,8 @@ ConvertFromHapLegendSample(cxxopts::Options& options){
   std::cerr << "Converting hap/legend/sample file format to haps/sample file format.." << std::endl;
 
   int chr = 0;
-  if(options.count("chr")){
-    chr = options["chr"].as<int>();
+  if(result.count("chr")){
+    chr = result["chr"].as<int>();
   }
   std::string line_hap, line_legend;
 
@@ -47,18 +47,18 @@ ConvertFromHapLegendSample(cxxopts::Options& options){
   //legend
   //assume 4 columns with optional 5th column
 
-  igzstream is_hap(options["input"].as<std::string>() + ".hap");
-  if(is_hap.fail()) is_hap.open(options["input"].as<std::string>() + ".hap.gz");
-  igzstream is_legend(options["input"].as<std::string>() + ".legend");
-  if(is_legend.fail()) is_legend.open(options["input"].as<std::string>() + ".legend.gz");
-  FILE* fp_haps   = fopen((options["haps"].as<std::string>()).c_str(), "w");
+  igzstream is_hap(result["input"].as<std::string>() + ".hap");
+  if(is_hap.fail()) is_hap.open(result["input"].as<std::string>() + ".hap.gz");
+  igzstream is_legend(result["input"].as<std::string>() + ".legend");
+  if(is_legend.fail()) is_legend.open(result["input"].as<std::string>() + ".legend.gz");
+  FILE* fp_haps   = fopen((result["haps"].as<std::string>()).c_str(), "w");
 
   if(is_hap.fail()){
-    std::cerr << "Error while opening file " << options["input"].as<std::string>() + ".hap(.gz)" << "." << std::endl;
+    std::cerr << "Error while opening file " << result["input"].as<std::string>() + ".hap(.gz)" << "." << std::endl;
     exit(1);
   } 
   if(is_legend.fail()){
-    std::cerr << "Error while opening file " << options["input"].as<std::string>() + ".legend(.gz)" << "." << std::endl;
+    std::cerr << "Error while opening file " << result["input"].as<std::string>() + ".legend(.gz)" << "." << std::endl;
     exit(1);
   } 
 
@@ -173,13 +173,13 @@ ConvertFromHapLegendSample(cxxopts::Options& options){
   is_legend.close();
 
   //create sample file (not dependent on input)
-  igzstream is_sample(options["input"].as<std::string>() + ".sample");
-  if(is_sample.fail()) is_sample.open(options["input"].as<std::string>() + ".sample.gz");
+  igzstream is_sample(result["input"].as<std::string>() + ".sample");
+  if(is_sample.fail()) is_sample.open(result["input"].as<std::string>() + ".sample.gz");
   if(is_sample.fail()){
-    std::cerr << "Error while opening file " << options["input"].as<std::string>() + ".sample(.gz)" << "." << std::endl;
+    std::cerr << "Error while opening file " << result["input"].as<std::string>() + ".sample(.gz)" << "." << std::endl;
     exit(1);
   } 
-  std::ofstream os_sample(options["sample"].as<std::string>());
+  std::ofstream os_sample(result["sample"].as<std::string>());
 
   os_sample << "ID_1\tID_2\tmissing\n";
   os_sample << "0\t0\t0\n";
@@ -195,7 +195,7 @@ ConvertFromHapLegendSample(cxxopts::Options& options){
   os_sample.close();
 
   std::cerr << "Removed " << snp - snp_accepted << " non-biallelic SNPs." << std::endl;
-  std::cerr << "Output written to " << options["haps"].as<std::string>() << " and " << options["sample"].as<std::string>() << "." << std::endl;
+  std::cerr << "Output written to " << result["haps"].as<std::string>() << " and " << result["sample"].as<std::string>() << "." << std::endl;
 
   /////////////////////////////////////////////
   //Resource Usage
@@ -215,18 +215,18 @@ ConvertFromHapLegendSample(cxxopts::Options& options){
 }
 
 void
-ConvertFromVcf(cxxopts::Options& options){
+ConvertFromVcf(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("haps") || !options.count("sample")){
+  if( !result.count("input") || !result.count("haps") || !result.count("sample")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, haps, sample. Optional: flag (0: all variants, 1 only SNP)" << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Converts vcf file format to haps/sample file format (Shapeit).." << std::endl;
     exit(0);
@@ -240,13 +240,13 @@ ConvertFromVcf(cxxopts::Options& options){
 
   //parse vcf 
 
-  igzstream is_vcf(options["input"].as<std::string>() + ".vcf");
-  if(is_vcf.fail()) is_vcf.open(options["input"].as<std::string>() + ".vcf.gz");
+  igzstream is_vcf(result["input"].as<std::string>() + ".vcf");
+  if(is_vcf.fail()) is_vcf.open(result["input"].as<std::string>() + ".vcf.gz");
   if(is_vcf.fail()){
-    std::cerr << "Error opening file " << options["input"].as<std::string>() + ".vcf(.gz)" << std::endl;
+    std::cerr << "Error opening file " << result["input"].as<std::string>() + ".vcf(.gz)" << std::endl;
     exit(1);
   }
-  FILE* fp_haps = fopen((options["haps"].as<std::string>()).c_str(), "w");
+  FILE* fp_haps = fopen((result["haps"].as<std::string>()).c_str(), "w");
   assert(fp_haps);
 
   char chr[1024];
@@ -287,8 +287,8 @@ ConvertFromVcf(cxxopts::Options& options){
   int N_prev = N;
 
   bool only_snps = true;
-  if(options.count("flag")){
-    if(options["flag"].as<int>() == 0) only_snps = false;
+  if(result.count("flag")){
+    if(result["flag"].as<int>() == 0) only_snps = false;
   }
 
 	bool is_haploid = false, is_this_haploid = false;
@@ -420,7 +420,7 @@ ConvertFromVcf(cxxopts::Options& options){
 
 
   //create sample file
-  std::ofstream os_sample(options["sample"].as<std::string>());
+  std::ofstream os_sample(result["sample"].as<std::string>());
 
   c = 0;
   for(int k = 0; k < 9; k++){
@@ -450,7 +450,7 @@ ConvertFromVcf(cxxopts::Options& options){
 
 
 
-  std::cerr << "Output written to " << options["haps"].as<std::string>() << " and " << options["sample"].as<std::string>() << "." << std::endl;
+  std::cerr << "Output written to " << result["haps"].as<std::string>() << " and " << result["sample"].as<std::string>() << "." << std::endl;
 
   /////////////////////////////////////////////
   //Resource Usage
@@ -469,18 +469,18 @@ ConvertFromVcf(cxxopts::Options& options){
 }
 
 void
-RemoveNonBiallelicSNPs(cxxopts::Options& options){
+RemoveNonBiallelicSNPs(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("haps") | !options.count("output")){
+  if(!result.count("haps") | !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: haps, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Removes SNPs at positions with multiple SNPs." << std::endl;
     exit(0);
@@ -489,11 +489,11 @@ RemoveNonBiallelicSNPs(cxxopts::Options& options){
   std::cerr << "---------------------------------------------------------" << std::endl;
   std::cerr << "Removing non-biallelic SNPs.." << std::endl;
 
-  igzstream is_haps(options["haps"].as<std::string>());
-  std::ofstream os_haps(options["output"].as<std::string>() + ".haps");
+  igzstream is_haps(result["haps"].as<std::string>());
+  std::ofstream os_haps(result["output"].as<std::string>() + ".haps");
 
   if(is_haps.fail()){
-    std::cerr << "Error while opening file " << options["haps"].as<std::string>() << "." << std::endl;
+    std::cerr << "Error while opening file " << result["haps"].as<std::string>() << "." << std::endl;
     exit(1);
   } 
 
@@ -543,7 +543,7 @@ RemoveNonBiallelicSNPs(cxxopts::Options& options){
   os_haps.close();
 
   std::cerr << "Removed " << snp - snp_accepted << " non-biallelic SNPs." << std::endl;
-  std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps" << "." << std::endl;
+  std::cerr << "Output written to " << result["output"].as<std::string>() + ".haps" << "." << std::endl;
 
 
   /////////////////////////////////////////////
@@ -563,18 +563,18 @@ RemoveNonBiallelicSNPs(cxxopts::Options& options){
 }
 
 void
-RemoveSamples(cxxopts::Options& options){
+RemoveSamples(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("haps") || !options.count("sample") || !options.count("input") || !options.count("output") ){
+  if( !result.count("haps") || !result.count("sample") || !result.count("input") || !result.count("output") ){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: haps, sample, input, output. Optional: poplabels, flag (0: remove fixed mutations - default, 1: output all mutations)." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Remove samples specified in input.." << std::endl;
     exit(0);
@@ -584,17 +584,17 @@ RemoveSamples(cxxopts::Options& options){
   std::cerr << "Removing samples specified in input.. " << std::endl;
 
   bool remove_fixed = true;
-  if(options.count("flag")){
-    if((options["flag"].as<std::string>() != "0") && (options["flag"].as<std::string>() != "1")){
+  if(result.count("flag")){
+    if((result["flag"].as<std::string>() != "0") && (result["flag"].as<std::string>() != "1")){
       std::cerr << "Error: flag does not exist." << std::endl;
       std::cerr << "Use --flag 0: remove fixed mutations - default, --flag 1: output all mutations." << std::endl;
       exit(1);
     }
-    remove_fixed = (options["flag"].as<std::string>() == "0");
+    remove_fixed = (result["flag"].as<std::string>() == "0");
   }
 
-  haps m_hap(options["haps"].as<std::string>().c_str(), options["sample"].as<std::string>().c_str());
-  FILE* fp = fopen((options["output"].as<std::string>() + ".haps").c_str(), "w");
+  haps m_hap(result["haps"].as<std::string>().c_str(), result["sample"].as<std::string>().c_str());
+  FILE* fp = fopen((result["output"].as<std::string>() + ".haps").c_str(), "w");
   Data data(m_hap.GetN(), m_hap.GetL());
 
   std::cerr << m_hap.GetN() << " " << m_hap.GetL() << std::endl;
@@ -603,9 +603,9 @@ RemoveSamples(cxxopts::Options& options){
   char id[1024], id2[1024];
   std::string line, line2;
   std::vector<std::string> id_remove;
-  igzstream is_rem(options["input"].as<std::string>());
+  igzstream is_rem(result["input"].as<std::string>());
   if(is_rem.fail()){
-    std::cerr << "Error while opening file " << options["input"].as<std::string>() << "." << std::endl;
+    std::cerr << "Error while opening file " << result["input"].as<std::string>() << "." << std::endl;
     exit(1);
   } 
   while(getline(is_rem, line)){
@@ -613,25 +613,25 @@ RemoveSamples(cxxopts::Options& options){
   }
   is_rem.close();
 
-  igzstream is(options["sample"].as<std::string>());
-  std::ofstream os(options["output"].as<std::string>() + ".sample");
+  igzstream is(result["sample"].as<std::string>());
+  std::ofstream os(result["output"].as<std::string>() + ".sample");
   std::vector<int> remaining_haps;//(data.N - 2*id_remove.size());
 
   if(is.fail()){
-    std::cerr << "Error while opening file " << options["sample"].as<std::string>() << "." << std::endl;
+    std::cerr << "Error while opening file " << result["sample"].as<std::string>() << "." << std::endl;
     exit(1);
   }
 
   igzstream is_pop;
   std::ofstream os_pop;
   bool poplabels = false;
-  if(options.count("poplabels")){
+  if(result.count("poplabels")){
     poplabels = true;
-    is_pop.open(options["poplabels"].as<std::string>());
+    is_pop.open(result["poplabels"].as<std::string>());
     if(is_pop.fail()){
-      std::cerr << "Error while opening file " << options["poplabels"].as<std::string>() << "." << std::endl;
+      std::cerr << "Error while opening file " << result["poplabels"].as<std::string>() << "." << std::endl;
     }
-    os_pop.open(options["output"].as<std::string>() + ".poplabels");
+    os_pop.open(result["output"].as<std::string>() + ".poplabels");
     getline(is_pop, line2);
     os_pop << line2 << "\n";
   } 
@@ -717,7 +717,7 @@ RemoveSamples(cxxopts::Options& options){
   m_hap.CloseFile();
 
   std::cerr << "Removed " << data.L - L_new << " SNPs." << std::endl;
-  std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps" << " and " << options["output"].as<std::string>() + ".sample" << std::endl;
+  std::cerr << "Output written to " << result["output"].as<std::string>() + ".haps" << " and " << result["output"].as<std::string>() + ".sample" << std::endl;
 
 
   /////////////////////////////////////////////
@@ -737,18 +737,18 @@ RemoveSamples(cxxopts::Options& options){
 }
 
 void
-FilterHapsUsingMask(cxxopts::Options& options){
+FilterHapsUsingMask(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("haps") || !options.count("sample") || !options.count("mask") || !options.count("output") ){
+  if( !result.count("haps") || !result.count("sample") || !result.count("mask") || !result.count("output") ){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: haps, sample, mask, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Filter haps using mask.." << std::endl;
     exit(0);
@@ -760,21 +760,21 @@ FilterHapsUsingMask(cxxopts::Options& options){
 
   //read in mask
   fasta mask;
-  mask.Read(options["mask"].as<std::string>());
+  mask.Read(result["mask"].as<std::string>());
 
   //parse haps line by line and delete SNPs appropriately
-  haps m_hap(options["haps"].as<std::string>().c_str(), options["sample"].as<std::string>().c_str()); //use only to get N and L;
+  haps m_hap(result["haps"].as<std::string>().c_str(), result["sample"].as<std::string>().c_str()); //use only to get N and L;
   m_hap.CloseFile();
   std::vector<char> sequence(m_hap.GetN());
   std::vector<int> pos(m_hap.GetL(), 0), dist(m_hap.GetL(), 0);
   Data data(m_hap.GetN(), m_hap.GetL());
 
-  igzstream is(options["haps"].as<std::string>());
+  igzstream is(result["haps"].as<std::string>());
   if(is.fail()){
     std::cerr << "Error opening file." << std::endl;
     exit(1);
   }
-  std::ofstream os(options["output"].as<std::string>() + ".haps");
+  std::ofstream os(result["output"].as<std::string>() + ".haps");
   if(os.fail()){
     std::cerr << "Error opening file." << std::endl;
     exit(1);
@@ -859,7 +859,7 @@ FilterHapsUsingMask(cxxopts::Options& options){
   pos.resize(passing_snp);
   dist.resize(passing_snp);
 
-  FILE* fp_dist = fopen((options["output"].as<std::string>() + ".dist").c_str(), "w");
+  FILE* fp_dist = fopen((result["output"].as<std::string>() + ".dist").c_str(), "w");
   std::vector<int>::iterator it_pos = pos.begin();
   fprintf(fp_dist, "#pos dist\n");
   for(std::vector<int>::iterator it_dist = dist.begin(); it_dist != dist.end();){
@@ -870,7 +870,7 @@ FilterHapsUsingMask(cxxopts::Options& options){
   fclose(fp_dist);
 
   std::cerr << "Removed " << data.L - passing_snp << " SNPs." << std::endl;
-  std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps" << " and " << options["output"].as<std::string>() + ".dist" << std::endl;
+  std::cerr << "Output written to " << result["output"].as<std::string>() + ".haps" << " and " << result["output"].as<std::string>() + ".dist" << std::endl;
 
 
   /////////////////////////////////////////////
@@ -890,18 +890,18 @@ FilterHapsUsingMask(cxxopts::Options& options){
 }
 
 void
-FlipHapsUsingAncestor(cxxopts::Options& options){
+FlipHapsUsingAncestor(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("haps") || !options.count("sample") || !options.count("ancestor") || !options.count("output") ){
+  if( !result.count("haps") || !result.count("sample") || !result.count("ancestor") || !result.count("output") ){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: haps, sample, ancestor, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Detemine ancestral allele and flip SNPs." << std::endl;
     exit(0);
@@ -911,17 +911,17 @@ FlipHapsUsingAncestor(cxxopts::Options& options){
   std::cerr << "Detemining ancestral allele and flipping SNPs if necessary... " << std::endl;
 
   fasta ancestor;
-  ancestor.Read(options["ancestor"].as<std::string>());
-  haps m_hap(options["haps"].as<std::string>().c_str(), options["sample"].as<std::string>().c_str());
+  ancestor.Read(result["ancestor"].as<std::string>());
+  haps m_hap(result["haps"].as<std::string>().c_str(), result["sample"].as<std::string>().c_str());
   m_hap.CloseFile();
   Data data(m_hap.GetN(), m_hap.GetL());
 
-  igzstream is(options["haps"].as<std::string>().c_str());
+  igzstream is(result["haps"].as<std::string>().c_str());
   if(is.fail()){
     std::cerr << "Error opening file." << std::endl;
     exit(1);
   }
-  std::ofstream os(options["output"].as<std::string>() + ".haps");
+  std::ofstream os(result["output"].as<std::string>() + ".haps");
   if(os.fail()){
     std::cerr << "Error opening file." << std::endl;
     exit(1);
@@ -1039,7 +1039,7 @@ FlipHapsUsingAncestor(cxxopts::Options& options){
 
   std::cerr << "Had to remove " << removed_snps << " SNPs because of non-matching nucleotides" << std::endl;
   std::cerr << "Number of flipped SNPs is " << number_flipped << "." << std::endl;
-  std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps." << std::endl;
+  std::cerr << "Output written to " << result["output"].as<std::string>() + ".haps." << std::endl;
 
   /////////////////////////////////////////////
   //Resource Usage
@@ -1058,18 +1058,18 @@ FlipHapsUsingAncestor(cxxopts::Options& options){
 }
 
 void
-GenerateSNPAnnotations(cxxopts::Options& options){
+GenerateSNPAnnotations(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("haps") || !options.count("sample") || !options.count("poplabels") || !options.count("output") ){
+  if( !result.count("haps") || !result.count("sample") || !result.count("poplabels") || !result.count("output") ){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: haps, sample, poplabels, output. Optional: ancestor, mut." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Generate additional annotation for SNPs." << std::endl;
     exit(0);
@@ -1079,25 +1079,25 @@ GenerateSNPAnnotations(cxxopts::Options& options){
   std::cerr << "Generating additional annotation for SNPs... " << std::endl;
 
   bool is_ancestor = false;
-  if(options.count("ancestor")) is_ancestor = true;
+  if(result.count("ancestor")) is_ancestor = true;
 
   fasta ancestor;
-  if(is_ancestor) ancestor.Read(options["ancestor"].as<std::string>());
+  if(is_ancestor) ancestor.Read(result["ancestor"].as<std::string>());
 
-  haps m_hap(options["haps"].as<std::string>().c_str(), options["sample"].as<std::string>().c_str());
+  haps m_hap(result["haps"].as<std::string>().c_str(), result["sample"].as<std::string>().c_str());
   Data data(m_hap.GetN(), m_hap.GetL());
 
   Mutations mut;
   bool is_mut = false;
-  if(options.count("mut")){
+  if(result.count("mut")){
     is_mut = true;
-    mut.Read(options["mut"].as<std::string>());
+    mut.Read(result["mut"].as<std::string>());
   }
 
   Sample sample;
-  sample.Read(options["poplabels"].as<std::string>());
+  sample.Read(result["poplabels"].as<std::string>());
 
-  std::ofstream os(options["output"].as<std::string>() + ".annot");
+  std::ofstream os(result["output"].as<std::string>() + ".annot");
   if(os.fail()){
     std::cerr << "Error opening file." << std::endl;
     exit(1);
@@ -1178,17 +1178,17 @@ GenerateSNPAnnotations(cxxopts::Options& options){
 
   }
 
-  if(options.count("mut")){
+  if(result.count("mut")){
 
     mut.header  = "snp;pos_of_snp;dist;rs-id;tree_index;branch_indices;is_not_mapping;is_flipped;age_begin;age_end;ancestral_allele/alternative_allele;"; 
     mut.header += "upstream_allele;downstream_allele;";
     for(std::vector<std::string>::iterator it_groups = sample.groups.begin(); it_groups != sample.groups.end(); it_groups++){
       mut.header += *it_groups + ";";
     }
-    mut.Dump(options["output"].as<std::string>() + ".mut");
-    std::cerr << "Output written to " << options["output"].as<std::string>() + ".annot and " << options["output"].as<std::string>() + ".mut" << std::endl;
+    mut.Dump(result["output"].as<std::string>() + ".mut");
+    std::cerr << "Output written to " << result["output"].as<std::string>() + ".annot and " << result["output"].as<std::string>() + ".mut" << std::endl;
   }else{
-    std::cerr << "Output written to " << options["output"].as<std::string>() + ".annot" << std::endl;
+    std::cerr << "Output written to " << result["output"].as<std::string>() + ".annot" << std::endl;
   }
 
   /////////////////////////////////////////////

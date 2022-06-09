@@ -6,49 +6,49 @@
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <ctime>
 
 
 void
-GetTreeOfInterest(cxxopts::Options& options){
+GetTreeOfInterest(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || (!options.count("bp_of_interest") && (!options.count("first_bp") || !options.count("last_bp")) ) || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || (!result.count("bp_of_interest") && (!result.count("first_bp") || !result.count("last_bp")) ) || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, output, bp_of_interest or (first_bp and last_bp). Optional: years_per_gen (Default: 28)" << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Outputs tree of interest as .newick file." << std::endl;
 		exit(0);
 	}  
 
 	int first_bp, last_bp;
-	if(options.count("bp_of_interest")){
-		first_bp = options["bp_of_interest"].as<int>();
+	if(result.count("bp_of_interest")){
+		first_bp = result["bp_of_interest"].as<int>();
 		last_bp  = first_bp;
-	}else if(options.count("first_bp") && options.count("last_bp")){
-		first_bp = options["first_bp"].as<int>();
-		last_bp  = options["last_bp"].as<int>();
+	}else if(result.count("first_bp") && result.count("last_bp")){
+		first_bp = result["first_bp"].as<int>();
+		last_bp  = result["last_bp"].as<int>();
 	}else{
 		std::cerr << "Error: need either --bp_of_interest or both --first_bp and --last_bp" << std::endl;
 		exit(1);
 	}
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
-	std::cerr << "Get tree from " << options["anc"].as<std::string>() << " in region [" << first_bp << "," << last_bp  << "]..." << std::endl;
+	std::cerr << "Get tree from " << result["anc"].as<std::string>() << " in region [" << first_bp << "," << last_bp  << "]..." << std::endl;
 
 	double years_per_gen = 28;
-	if(options.count("years_per_gen")) years_per_gen = options["years_per_gen"].as<float>();
+	if(result.count("years_per_gen")) years_per_gen = result["years_per_gen"].as<float>();
 
 	//////////////////////////////////
 	//Parse Data
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	int L = ancmut.NumSnps();
 	MarginalTree mtr;
@@ -62,7 +62,7 @@ GetTreeOfInterest(cxxopts::Options& options){
 	//////////////////////////////////////////// Read Tree ///////////////////////////////////
 
 	Mutations mut;
-	mut.Read(options["mut"].as<std::string>());
+	mut.Read(result["mut"].as<std::string>());
 	int index_of_first_bp = -1;
 	for(it_mut = mut.info.begin(); it_mut != mut.info.end(); it_mut++){
 		index_of_first_bp++;
@@ -86,9 +86,9 @@ GetTreeOfInterest(cxxopts::Options& options){
 	}
 	int tree_index_end = mut.info[index_of_last_bp].tree;
 
-	std::string filename = options["output"].as<std::string>() + ".newick";
+	std::string filename = result["output"].as<std::string>() + ".newick";
 	std::ofstream os(filename);
-	std::ofstream os_pos(options["output"].as<std::string>() + ".pos");
+	std::ofstream os_pos(result["output"].as<std::string>() + ".pos");
 
 	int count_trees = 0;
 	num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
@@ -125,34 +125,34 @@ GetTreeOfInterest(cxxopts::Options& options){
 
 
 void
-MapMutation(cxxopts::Options& options){
+MapMutation(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("haps") || !options.count("sample") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("haps") || !result.count("sample") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, haps, sample, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Map mutations to tree." << std::endl;
 		exit(0);
 	}  
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
-	std::cerr << "Mapping mutations to " << options["anc"].as<std::string>() << "..." << std::endl;
+	std::cerr << "Mapping mutations to " << result["anc"].as<std::string>() << "..." << std::endl;
   std::cerr << "Mutations mapping at already existing positions will be skipped." << std::endl;
 
-	haps mhaps(options["haps"].as<std::string>().c_str(), options["sample"].as<std::string>().c_str()); 
+	haps mhaps(result["haps"].as<std::string>().c_str(), result["sample"].as<std::string>().c_str()); 
 	Data data(mhaps.GetN(), mhaps.GetL());
 
 	int bp;
 	std::vector<char> sequence(data.N);
 
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	int N_total = 2*N-1;
 	int root = N_total - 1;
@@ -269,7 +269,7 @@ MapMutation(cxxopts::Options& options){
 	}
 
 	mut.info.resize(snp_mut);
-	mut.Dump(options["output"].as<std::string>() + ".mut");
+	mut.Dump(result["output"].as<std::string>() + ".mut");
 
 	/////////////////////////////////////////////
 	//Resource Usage
@@ -288,34 +288,34 @@ MapMutation(cxxopts::Options& options){
 }
 
 void
-UnlinkTips(cxxopts::Options& options){
+UnlinkTips(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, output" << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Unlink Tips." << std::endl;
 		exit(0);
 	}  
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
-	std::cerr << "Unlink tips of " << options["anc"].as<std::string>() << "..." << std::endl;
+	std::cerr << "Unlink tips of " << result["anc"].as<std::string>() << "..." << std::endl;
 
 	bool use_transitions = true;
-	if(options.count("transversion")) use_transitions = false;
+	if(result.count("transversion")) use_transitions = false;
 
 	std::string line;
 
-	std::ofstream os(options["output"].as<std::string>() + ".anc");
+	std::ofstream os(result["output"].as<std::string>() + ".anc");
 
-	igzstream is(options["anc"].as<std::string>());
+	igzstream is(result["anc"].as<std::string>());
 	if(is.fail()){
 		std::cerr << "Error opening .anc file" << std::endl;
 		exit(1);
@@ -326,7 +326,7 @@ UnlinkTips(cxxopts::Options& options){
 	os << line << "\n";
 	is.close();
 
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	int N_total = 2*N-1;
 	int root = N_total - 1;
@@ -335,7 +335,7 @@ UnlinkTips(cxxopts::Options& options){
 	float num_bases_tree_persists = 0.0;
 
 
-	igzstream is_in(options["input"].as<std::string>());
+	igzstream is_in(result["input"].as<std::string>());
 	if(is_in.fail()){
 		std::cerr << "Error opening input file" << std::endl;
 		exit(1);

@@ -14,7 +14,7 @@
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 void
 GetCoordsAndLineages(MarginalTree& mtr, std::vector<float>& coordinates_tree, std::vector<int>& num_lineages){
@@ -293,15 +293,15 @@ GetBranchLengthsInEpoch(Data& data, std::vector<double>& epoch, std::vector<floa
 ////////////// Avg mutation rate //////////////
 
 void 
-CalculateAvgMutationRateForChromosome(cxxopts::Options& options, std::vector<double>& mutation_by_epoch, std::vector<double>& opportunity_by_epoch, std::string chr = "NA"){
+CalculateAvgMutationRateForChromosome(cxxopts::Options& options, cxxopts::ParseResult& result, std::vector<double>& mutation_by_epoch, std::vector<double>& opportunity_by_epoch, std::string chr = "NA"){
 
   std::string line, read;
 
   AncMutIterators ancmut;
   if(chr == "NA"){
-    ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   }else{
-    ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }   
 
   int N = ancmut.NumTips();
@@ -317,17 +317,17 @@ CalculateAvgMutationRateForChromosome(cxxopts::Options& options, std::vector<dou
 
   Mutations mutations(data);
   if(chr == "NA"){
-    mutations.Read(options["input"].as<std::string>() + ".mut");
+    mutations.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mutations.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mutations.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   std::vector<int> pos, dist;
-  if(options.count("dist")){
+  if(result.count("dist")){
 
     int L_allsnps = 0;
 
-    std::string filename_dist = options["dist"].as<std::string>();
+    std::string filename_dist = result["dist"].as<std::string>();
     if(chr != "NA"){
       filename_dist += "_chr" + chr + ".dist";
     }
@@ -372,20 +372,20 @@ CalculateAvgMutationRateForChromosome(cxxopts::Options& options, std::vector<dou
 
   ///////// EPOCHES /////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   } 
 
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -590,15 +590,15 @@ CalculateAvgMutationRateForChromosome(cxxopts::Options& options, std::vector<dou
 }
 
 void 
-CalculateMutationDensity(cxxopts::Options& options, std::ofstream& os, int sample, std::vector<double>& mutation_by_epoch, std::vector<double>& opportunity_by_epoch, std::string chr = "NA"){
+CalculateMutationDensity(cxxopts::Options& options, cxxopts::ParseResult& result, std::ofstream& os, int sample, std::vector<double>& mutation_by_epoch, std::vector<double>& opportunity_by_epoch, std::string chr = "NA"){
 
   std::string line, read;
 
   AncMutIterators ancmut;
   if(chr == "NA"){
-    ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   }else{
-    ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }   
 
   int N = ancmut.NumTips();
@@ -614,17 +614,17 @@ CalculateMutationDensity(cxxopts::Options& options, std::ofstream& os, int sampl
 
   Mutations mutations(data);
   if(chr == "NA"){
-    mutations.Read(options["input"].as<std::string>() + ".mut");
+    mutations.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mutations.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mutations.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   std::vector<int> pos, dist;
-  if(options.count("dist")){
+  if(result.count("dist")){
 
     int L_allsnps = 0;
 
-    std::string filename_dist = options["dist"].as<std::string>();
+    std::string filename_dist = result["dist"].as<std::string>();
     if(chr != "NA"){
       filename_dist += "_chr" + chr + ".dist";
     }
@@ -669,20 +669,20 @@ CalculateMutationDensity(cxxopts::Options& options, std::ofstream& os, int sampl
 
   ///////// EPOCHES /////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   } 
 
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -827,46 +827,46 @@ CalculateMutationDensity(cxxopts::Options& options, std::ofstream& os, int sampl
 }
 
 
-void AvgMutationRate(cxxopts::Options& options){
+void AvgMutationRate(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output.  Optional: chr, first_chr, last_chr, years_per_gen, bins, dist." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate avg mutation rate through time." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  if(options.count("chr")){
-    std::cerr << "Calculating average mutation rate for " << options["input"].as<std::string>() << "* ..." << std::endl;
-  }else if(options.count("first_chr") && options.count("last_chr")){
-    std::cerr << "Calculating average mutation rate for " << options["input"].as<std::string>() << "_chr" << options["first_chr"].as<int>();
-    std::cerr << " - " << options["input"].as<std::string>() << "_chr" << options["last_chr"].as<int>() << " ..." << std::endl;
+  if(result.count("chr")){
+    std::cerr << "Calculating average mutation rate for " << result["input"].as<std::string>() << "* ..." << std::endl;
+  }else if(result.count("first_chr") && result.count("last_chr")){
+    std::cerr << "Calculating average mutation rate for " << result["input"].as<std::string>() << "_chr" << result["first_chr"].as<int>();
+    std::cerr << " - " << result["input"].as<std::string>() << "_chr" << result["last_chr"].as<int>() << " ..." << std::endl;
   }else{
-    std::cerr << "Calculating average mutation rate for " << options["input"].as<std::string>() << " ..." << std::endl;
+    std::cerr << "Calculating average mutation rate for " << result["input"].as<std::string>() << " ..." << std::endl;
   }
 
   ///////// EPOCHES /////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
 
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -945,28 +945,28 @@ void AvgMutationRate(cxxopts::Options& options){
   std::fill(mutation_by_epoch.begin(), mutation_by_epoch.end(), 0.0);
   std::fill(opportunity_by_epoch.begin(), opportunity_by_epoch.end(), 0.0);
 
-  if(options.count("chr")){
-    igzstream is_chr(options["chr"].as<std::string>());
+  if(result.count("chr")){
+    igzstream is_chr(result["chr"].as<std::string>());
     if(is_chr.fail()){
-      std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+      std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
     }
     std::string line;
     while(getline(is_chr, line)){
-      CalculateAvgMutationRateForChromosome(options, mutation_by_epoch, opportunity_by_epoch, line);
+      CalculateAvgMutationRateForChromosome(options, result, mutation_by_epoch, opportunity_by_epoch, line);
     }
     is_chr.close();
-  }else if(options.count("first_chr") && options.count("last_chr")){
-    for(int chr = options["first_chr"].as<int>(); chr <= options["last_chr"].as<int>(); chr++){
-      CalculateAvgMutationRateForChromosome(options, mutation_by_epoch, opportunity_by_epoch, std::to_string(chr));
+  }else if(result.count("first_chr") && result.count("last_chr")){
+    for(int chr = result["first_chr"].as<int>(); chr <= result["last_chr"].as<int>(); chr++){
+      CalculateAvgMutationRateForChromosome(options, result, mutation_by_epoch, opportunity_by_epoch, std::to_string(chr));
     } 
   }else{
-    CalculateAvgMutationRateForChromosome(options, mutation_by_epoch, opportunity_by_epoch);
+    CalculateAvgMutationRateForChromosome(options, result, mutation_by_epoch, opportunity_by_epoch);
   }
 
 
   // Summarize
 
-  std::ofstream os(options["output"].as<std::string>() + "_avg.rate");
+  std::ofstream os(result["output"].as<std::string>() + "_avg.rate");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -1012,46 +1012,46 @@ void AvgMutationRate(cxxopts::Options& options){
 
 }
 
-void MutationDensity(cxxopts::Options& options){
+void MutationDensity(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   bool help = false;
-  if(!options.count("input") || !options.count("output") || !options.count("pop_of_interest")){
+  if(!result.count("input") || !result.count("output") || !result.count("pop_of_interest")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output, pop_of_interest.  Optional: chr, first_chr, last_chr, years_per_gen, bins, dist." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate density of mutations for each tree." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  if(options.count("chr")){
-    std::cerr << "Calculating mutation density for " << options["input"].as<std::string>() << "* and sample " << options["pop_of_interest"].as<std::string>() << " ..." << std::endl;
-  }else if(options.count("first_chr") && options.count("last_chr")){
-    std::cerr << "Calculating mutation density for " << options["input"].as<std::string>() << "_chr" << options["first_chr"].as<int>();
-    std::cerr << " - " << options["input"].as<std::string>() << "_chr" << options["last_chr"].as<int>() << "* and sample " << options["pop_of_interest"].as<std::string>() << " ..." << std::endl;
+  if(result.count("chr")){
+    std::cerr << "Calculating mutation density for " << result["input"].as<std::string>() << "* and sample " << result["pop_of_interest"].as<std::string>() << " ..." << std::endl;
+  }else if(result.count("first_chr") && result.count("last_chr")){
+    std::cerr << "Calculating mutation density for " << result["input"].as<std::string>() << "_chr" << result["first_chr"].as<int>();
+    std::cerr << " - " << result["input"].as<std::string>() << "_chr" << result["last_chr"].as<int>() << "* and sample " << result["pop_of_interest"].as<std::string>() << " ..." << std::endl;
   }else{
-    std::cerr << "Calculating mutation density for " << options["input"].as<std::string>() << "* and sample " << options["pop_of_interest"].as<std::string>() << " ..." << std::endl;
+    std::cerr << "Calculating mutation density for " << result["input"].as<std::string>() << "* and sample " << result["pop_of_interest"].as<std::string>() << " ..." << std::endl;
   }
 
   ///////// EPOCHES /////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
 
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -1121,7 +1121,7 @@ void MutationDensity(cxxopts::Options& options){
 
   }
 
-  int sample = stoi(options["pop_of_interest"].as<std::string>());
+  int sample = stoi(result["pop_of_interest"].as<std::string>());
 
   ///////////////////////////////
 
@@ -1132,7 +1132,7 @@ void MutationDensity(cxxopts::Options& options){
   std::fill(mutation_by_epoch.begin(), mutation_by_epoch.end(), 0.0);
   std::fill(opportunity_by_epoch.begin(), opportunity_by_epoch.end(), 0.0);
 
-  std::ofstream os(options["output"].as<std::string>() + ".mutden");
+  std::ofstream os(result["output"].as<std::string>() + ".mutden");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -1147,22 +1147,22 @@ void MutationDensity(cxxopts::Options& options){
   }
   os << "\n";
 
-  if(options.count("chr")){
-    igzstream is_chr(options["chr"].as<std::string>());
+  if(result.count("chr")){
+    igzstream is_chr(result["chr"].as<std::string>());
     if(is_chr.fail()){
-      std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+      std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
     }
     std::string line;
     while(getline(is_chr, line)){
-      CalculateMutationDensity(options, os, sample, mutation_by_epoch, opportunity_by_epoch, line);
+      CalculateMutationDensity(options, result, os, sample, mutation_by_epoch, opportunity_by_epoch, line);
     }
     is_chr.close();
-  }else if(options.count("first_chr") && options.count("last_chr")){
-    for(int chr = options["first_chr"].as<int>(); chr <= options["last_chr"].as<int>(); chr++){
-      CalculateMutationDensity(options, os, sample, mutation_by_epoch, opportunity_by_epoch, std::to_string(chr));
+  }else if(result.count("first_chr") && result.count("last_chr")){
+    for(int chr = result["first_chr"].as<int>(); chr <= result["last_chr"].as<int>(); chr++){
+      CalculateMutationDensity(options, result, os, sample, mutation_by_epoch, opportunity_by_epoch, std::to_string(chr));
     } 
   }else{
-    CalculateMutationDensity(options, os, sample, mutation_by_epoch, opportunity_by_epoch);
+    CalculateMutationDensity(options, result, os, sample, mutation_by_epoch, opportunity_by_epoch);
   }
 
   os.close();

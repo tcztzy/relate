@@ -6,7 +6,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include "data.hpp"
 
 int main(int argc, char* argv[]){

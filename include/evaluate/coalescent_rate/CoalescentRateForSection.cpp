@@ -7,7 +7,7 @@
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 #include "mutations.hpp"
 #include "coal_tree.hpp"
@@ -225,18 +225,18 @@ GetCoalescentRate(Node n, float factor, std::vector<float>& epoch, std::vector<d
 }
 
 int 
-CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
+CoalescentRateForSection(cxxopts::Options& options, cxxopts::ParseResult result, std::string chr = "NA"){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: years_per_gen, dist, bins." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Reads .anc file and calculates pairwise coalescence rate. Output is bin file. Use SummarizeCoalesecntRate to obtain coalescence rates." << std::endl;
     exit(0);
@@ -244,9 +244,9 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
 
   std::cerr << "---------------------------------------------------------" << std::endl;
   if(chr == "NA"){
-    std::cerr << "Calculating coalescence rate for " << options["input"].as<std::string>() << " ..." << std::endl;
+    std::cerr << "Calculating coalescence rate for " << result["input"].as<std::string>() << " ..." << std::endl;
   }else{
-    std::cerr << "Calculating coalescence rate for " << options["input"].as<std::string>() << "_chr" << chr << " ..." << std::endl;
+    std::cerr << "Calculating coalescence rate for " << result["input"].as<std::string>() << "_chr" << chr << " ..." << std::endl;
   }
 
   ////////////////////////
@@ -254,26 +254,26 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
 
   fasta mask;
   double cutoff = 0.9;
-  if(options.count("mask")){
+  if(result.count("mask")){
     if(chr == "NA"){
-      mask.Read(options["mask"].as<std::string>());
+      mask.Read(result["mask"].as<std::string>());
     }else{
-      mask.Read(options["mask"].as<std::string>() + "_chr" + chr + ".fa");
+      mask.Read(result["mask"].as<std::string>() + "_chr" + chr + ".fa");
     }
   }
 
   AncMutIterators ancmut;
-  if(options.count("dist")){
+  if(result.count("dist")){
     if(chr == "NA"){
-      ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut", options["dist"].as<std::string>());
+      ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut", result["dist"].as<std::string>());
     }else{
-      ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut", options["dist"].as<std::string>() + "_chr" + chr + ".dist");
+      ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut", result["dist"].as<std::string>() + "_chr" + chr + ".dist");
     } 
   }else{  
     if(chr == "NA"){
-      ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+      ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
     }else{
-      ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+      ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
     } 
   } 
 
@@ -288,28 +288,28 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
   Mutations mut;
 
   if(chr == "NA"){
-    mut.Read(options["input"].as<std::string>() + ".mut");
+    mut.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mut.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mut.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   //calculate epoch times
 
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
 
   int num_epochs;
   std::vector<float> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -399,7 +399,7 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
       num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
 
       num_passing = 1.0;
-      if(options.count("mask") > 0){
+      if(result.count("mask") > 0){
 
         int tree_index = (*it_mut).tree;
         int pos_start = (*it_mut).pos;
@@ -445,7 +445,7 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
       num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
 
       num_passing = 1.0;
-      if(options.count("mask") > 0){
+      if(result.count("mask") > 0){
 
         int tree_index = (*it_mut).tree;
         int pos_start = (*it_mut).pos;
@@ -547,9 +547,9 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
     //output as bin
     FILE* fp;
     if(chr == "NA"){
-      fp = fopen((options["output"].as<std::string>() + ".bin" ).c_str(), "wb");  
+      fp = fopen((result["output"].as<std::string>() + ".bin" ).c_str(), "wb");  
     }else{
-      fp = fopen((options["output"].as<std::string>() + "_chr" + chr + ".bin" ).c_str(), "wb");  
+      fp = fopen((result["output"].as<std::string>() + "_chr" + chr + ".bin" ).c_str(), "wb");  
     }
 
     fwrite(&num_epochs, sizeof(int), 1, fp);
@@ -567,9 +567,9 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
     //output as bin
     FILE* fp;
     if(chr == "NA"){
-      fp = fopen((options["output"].as<std::string>() + ".bin" ).c_str(), "wb");  
+      fp = fopen((result["output"].as<std::string>() + ".bin" ).c_str(), "wb");  
     }else{
-      fp = fopen((options["output"].as<std::string>() + "_chr" + chr + ".bin" ).c_str(), "wb");  
+      fp = fopen((result["output"].as<std::string>() + "_chr" + chr + ".bin" ).c_str(), "wb");  
     }
 
     fwrite(&num_epochs, sizeof(int), 1, fp);
@@ -603,24 +603,24 @@ CoalescentRateForSection(cxxopts::Options& options, std::string chr = "NA"){
 
 ////// function for estimating coalescence rates in tree /////////
 void
-CoalescenceRateForTree(cxxopts::Options& options){
+CoalescenceRateForTree(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //Program options
 
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: bins, dist, chr, coal." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate coalescence rates for sample." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating coalescence rates for " << options["input"].as<std::string>() << "..." << std::endl;
+  std::cerr << "Calculating coalescence rates for " << result["input"].as<std::string>() << "..." << std::endl;
 
   /////////////////////////////////
   //get TMRCA at each SNP
@@ -628,21 +628,21 @@ CoalescenceRateForTree(cxxopts::Options& options){
   ////////////////////////////////////////
 
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
 
   //decide on epochs 
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -723,29 +723,29 @@ CoalescenceRateForTree(cxxopts::Options& options){
   std::string line;
   std::vector<std::string> chromosomes;
   std::vector<std::string> filename_mut, filename_anc, filename_dist;
-  if(options.count("chr") > 0){
+  if(result.count("chr") > 0){
 
-    igzstream is_chr(options["chr"].as<std::string>());
+    igzstream is_chr(result["chr"].as<std::string>());
     if(is_chr.fail()){
-      std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+      std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
     }
     while(getline(is_chr, line)){
       chromosomes.push_back(line);
-      filename_anc.push_back(options["input"].as<std::string>() + "_chr" + line + ".anc");
-      filename_mut.push_back(options["input"].as<std::string>() + "_chr" + line + ".mut");
-      if(options.count("dist")) filename_dist.push_back(options["dist"].as<std::string>() + "_chr" + line + ".dist");
+      filename_anc.push_back(result["input"].as<std::string>() + "_chr" + line + ".anc");
+      filename_mut.push_back(result["input"].as<std::string>() + "_chr" + line + ".mut");
+      if(result.count("dist")) filename_dist.push_back(result["dist"].as<std::string>() + "_chr" + line + ".dist");
     }
     is_chr.close();
 
   }else{
     chromosomes.resize(1);
-    chromosomes[0] = options["input"].as<std::string>(); 
-    filename_anc.push_back(options["input"].as<std::string>() + ".anc");
-    filename_mut.push_back(options["input"].as<std::string>() + ".mut");
-    if(options.count("dist")) filename_dist.push_back(options["dist"].as<std::string>());
+    chromosomes[0] = result["input"].as<std::string>(); 
+    filename_anc.push_back(result["input"].as<std::string>() + ".anc");
+    filename_mut.push_back(result["input"].as<std::string>() + ".mut");
+    if(result.count("dist")) filename_dist.push_back(result["dist"].as<std::string>());
   }
 
-  if(!options.count("dist")){
+  if(!result.count("dist")){
     for(int chr = 0; chr < chromosomes.size(); chr++){
 
       AncMutIterators ancmut(filename_anc[chr], filename_mut[chr]);
@@ -794,7 +794,7 @@ CoalescenceRateForTree(cxxopts::Options& options){
     }
   }
 
-  igzstream is_coal(options["input"].as<std::string>() + ".coal");
+  igzstream is_coal(result["input"].as<std::string>() + ".coal");
   bool is_coal_fail = is_coal.fail();
   is_coal_fail = true;
 
@@ -835,10 +835,10 @@ CoalescenceRateForTree(cxxopts::Options& options){
       } 
     }
     is_coal.close(); 
-    ct.Dump(options["output"].as<std::string>() + ".coal", coal_values);
+    ct.Dump(result["output"].as<std::string>() + ".coal", coal_values);
 
   }else{
-    ct.Dump(options["output"].as<std::string>() + ".coal");
+    ct.Dump(result["output"].as<std::string>() + ".coal");
   }
 
   /////////////////////////////////////////////
@@ -858,24 +858,24 @@ CoalescenceRateForTree(cxxopts::Options& options){
 }
 
 void
-GenerateConstCoal(cxxopts::Options& options){
+GenerateConstCoal(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //Program options
 
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: bins, years_per_gen." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate coalescence rates for sample." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Generating coalescence rates file with const rate " << options["input"].as<std::string>() << "..." << std::endl;
+  std::cerr << "Generating coalescence rates file with const rate " << result["input"].as<std::string>() << "..." << std::endl;
 
   /////////////////////////////////
   //get TMRCA at each SNP
@@ -883,21 +883,21 @@ GenerateConstCoal(cxxopts::Options& options){
   ////////////////////////////////////////
 
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
 
   //decide on epochs 
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -968,7 +968,7 @@ GenerateConstCoal(cxxopts::Options& options){
   }
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".coal");
+  std::ofstream os(result["output"].as<std::string>() + ".coal");
   os << "group1\n";
 
   for(int e = 0; e < num_epochs; e++){
@@ -978,7 +978,7 @@ GenerateConstCoal(cxxopts::Options& options){
 
   std::vector<double> coal(epochs.size());
 
-  double Ne = std::stof(options["input"].as<std::string>());
+  double Ne = std::stof(result["input"].as<std::string>());
   os << 0 << " " << 0 << " ";
   for(int e = 0; e < num_epochs; e++){
     os << 1.0/Ne << " ";

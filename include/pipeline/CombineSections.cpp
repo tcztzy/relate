@@ -5,7 +5,7 @@
 #include <sys/resource.h>
 #include <string>
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include "data.hpp"
 #include "anc.hpp"
 #include "mutations.hpp"
@@ -13,15 +13,15 @@
 #include <sys/types.h> // required for stat.h
 #include <sys/stat.h> // no clue why required -- man pages say so
 
-int CombineSections(cxxopts::Options& options, int chunk_index = 0){
+int CombineSections(cxxopts::Options& options, cxxopts::ParseResult& result, int chunk_index = 0){
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output. Optional: effectiveN (should be consistent across Relate run)" << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Use after InferBranchLengths to combine files containing trees in small chunks to one file for a section." << std::endl;
     exit(0);
@@ -30,7 +30,7 @@ int CombineSections(cxxopts::Options& options, int chunk_index = 0){
   std::cerr << "---------------------------------------------------------" << std::endl;
   std::cerr << "Combining AncesTrees in Sections..." << std::endl;
 
-  std::string file_out = options["output"].as<std::string>() + "/";
+  std::string file_out = result["output"].as<std::string>() + "/";
 
   int N, L, num_windows;
   FILE* fp = fopen((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), "r");
@@ -42,14 +42,14 @@ int CombineSections(cxxopts::Options& options, int chunk_index = 0){
   num_windows--;
 
   int Ne = 30000;
-  if(options.count("effectiveN")) Ne = (int) options["effectiveN"].as<float>();
+  if(result.count("effectiveN")) Ne = (int) result["effectiveN"].as<float>();
 
   //////////////////////////////////
   //Parse Data
 
   Data data(N, L, Ne); //struct data is defined in data.hpp
   const std::string dirname = file_out + "chunk_" + std::to_string(chunk_index) + "/";
-  const std::string output_file = dirname + options["output"].as<std::string>();
+  const std::string output_file = dirname + result["output"].as<std::string>();
 
   ///////////////////////////////////////// Combine AncesTrees /////////////////////////
 

@@ -10,7 +10,7 @@
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 void 
 logFactorial(std::vector<float>& logF, int N){
@@ -159,24 +159,24 @@ struct Qual{
 };
 
 void 
-Selection(cxxopts::Options& options){
+Selection(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculating pvalue for selection using output of mode Frequency." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating evidence of selection for " + options["input"].as<std::string>() + ".\n";
+  std::cerr << "Calculating evidence of selection for " + result["input"].as<std::string>() + ".\n";
 
   std::string line_freq, line_lin, read;
 
@@ -184,21 +184,21 @@ Selection(cxxopts::Options& options){
   //obtain N, fN, k, fk for every SNP.
   //Calculate pvalue
 
-  igzstream is_freq(options["input"].as<std::string>() + ".freq");
-  if(is_freq.fail()) is_freq.open(options["input"].as<std::string>() + ".freq.gz");
+  igzstream is_freq(result["input"].as<std::string>() + ".freq");
+  if(is_freq.fail()) is_freq.open(result["input"].as<std::string>() + ".freq.gz");
   if(is_freq.fail()){
-    std::cerr << "Error while opening file " << options["input"].as<std::string>() + ".freq(.gz)" << std::endl;
+    std::cerr << "Error while opening file " << result["input"].as<std::string>() + ".freq(.gz)" << std::endl;
     exit(1);
   }
-  igzstream is_lin(options["input"].as<std::string>() + ".lin");
-  if(is_lin.fail()) is_lin.open(options["input"].as<std::string>() + ".freq.gz");
+  igzstream is_lin(result["input"].as<std::string>() + ".lin");
+  if(is_lin.fail()) is_lin.open(result["input"].as<std::string>() + ".freq.gz");
   if(is_lin.fail()){
-    std::cerr << "Error while opening file " << options["input"].as<std::string>() + ".lin(.gz)" << std::endl;
+    std::cerr << "Error while opening file " << result["input"].as<std::string>() + ".lin(.gz)" << std::endl;
     exit(1);
   }
-  std::ofstream os(options["output"].as<std::string>() + ".sele");
+  std::ofstream os(result["output"].as<std::string>() + ".sele");
   if(os.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".sele" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".sele" << std::endl;
     exit(1);
   }
 
@@ -299,31 +299,31 @@ Selection(cxxopts::Options& options){
 }
 
 void 
-Frequency(cxxopts::Options& options){
+Frequency(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: years_per_gen, first_snp, last_snp." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "..." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating frequency through time for " + options["input"].as<std::string>() + ".\n";
+  std::cerr << "Calculating frequency through time for " + result["input"].as<std::string>() + ".\n";
 
   std::string line, read;
 
   ////////// PARSE DATA //////////
 
   AncMutIterators ancmut;
-  ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+  ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   
   int N = ancmut.NumTips();
   int L = ancmut.NumSnps();
@@ -338,33 +338,33 @@ Frequency(cxxopts::Options& options){
   logFactorial(logF, data.N);
 
   int first_snp, last_snp;
-  if(!options.count("first_snp")){
+  if(!result.count("first_snp")){
     first_snp = 0;
   }else{
-    first_snp = options["first_snp"].as<int>();
+    first_snp = result["first_snp"].as<int>();
   }
-  if(!options.count("last_snp")){
+  if(!result.count("last_snp")){
     last_snp = data.L-1;
   }else{
-    last_snp = options["last_snp"].as<int>();
+    last_snp = result["last_snp"].as<int>();
   }
 
   ///////// EPOCHES /////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
  
   int num_epochs;
   std::vector<float> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0; 
  
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -437,7 +437,7 @@ Frequency(cxxopts::Options& options){
 
   //read mutations file
   Mutations mutations(data);
-  mutations.Read(options["input"].as<std::string>() + ".mut");
+  mutations.Read(result["input"].as<std::string>() + ".mut");
 
   ////////////////////
   //for a mutation, record how its frequency is changing
@@ -452,12 +452,12 @@ Frequency(cxxopts::Options& options){
   int i = 0;
   int snp_of_next_tree;
 
-  std::ofstream os_freq(options["output"].as<std::string>() + ".freq");
+  std::ofstream os_freq(result["output"].as<std::string>() + ".freq");
   if(os_freq.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
   }
-  std::ofstream os_lin(options["output"].as<std::string>() + ".lin");
+  std::ofstream os_lin(result["output"].as<std::string>() + ".lin");
   if(os_lin.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -701,24 +701,24 @@ Frequency(cxxopts::Options& options){
 }
 
 void 
-SDS(cxxopts::Options& options){
+SDS(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: years_per_gen, first_snp, last_snp." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "..." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating frequency through time for " + options["input"].as<std::string>() + ".\n";
+  std::cerr << "Calculating frequency through time for " + result["input"].as<std::string>() + ".\n";
 
   std::string line, read;
 
@@ -726,8 +726,8 @@ SDS(cxxopts::Options& options){
 
   int N;
   igzstream is_N;
-  is_N.open(options["input"].as<std::string>() + ".anc");
-  if(is_N.fail()) is_N.open(options["input"].as<std::string>() + ".anc.gz");
+  is_N.open(result["input"].as<std::string>() + ".anc");
+  if(is_N.fail()) is_N.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_N.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
@@ -738,8 +738,8 @@ SDS(cxxopts::Options& options){
 
   int L = 0;
   igzstream is_L;
-  is_L.open(options["input"].as<std::string>() + ".mut");
-  if(is_L.fail()) is_L.open(options["input"].as<std::string>() + ".mut.gz"); 
+  is_L.open(result["input"].as<std::string>() + ".mut");
+  if(is_L.fail()) is_L.open(result["input"].as<std::string>() + ".mut.gz"); 
   if(is_L.fail()){
     std::cerr << "Error while opening .mut file." << std::endl;
     exit(1);
@@ -756,20 +756,20 @@ SDS(cxxopts::Options& options){
 
   ///////// EPOCHES /////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
  
   int num_epochs;
   std::vector<float> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
  
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -842,18 +842,18 @@ SDS(cxxopts::Options& options){
 
   //read mutations file
   Mutations mutations(data);
-  mutations.Read(options["input"].as<std::string>() + ".mut");
+  mutations.Read(result["input"].as<std::string>() + ".mut");
 
   int first_snp, last_snp;
-  if(!options.count("first_snp")){
+  if(!result.count("first_snp")){
     first_snp = 0;
   }else{
-    first_snp = options["first_snp"].as<int>();
+    first_snp = result["first_snp"].as<int>();
   }
-  if(!options.count("last_snp")){
+  if(!result.count("last_snp")){
     last_snp = data.L-1;
   }else{
-    last_snp = options["last_snp"].as<int>();
+    last_snp = result["last_snp"].as<int>();
   }
 
 
@@ -869,13 +869,13 @@ SDS(cxxopts::Options& options){
   int i = 0;
   int snp_of_next_tree;
 
-  igzstream is_anc(options["input"].as<std::string>() + ".anc");
-  if(is_anc.fail()) is_anc.open(options["input"].as<std::string>() + ".anc.gz");
+  igzstream is_anc(result["input"].as<std::string>() + ".anc");
+  if(is_anc.fail()) is_anc.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_anc.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
   }
-  std::ofstream os(options["output"].as<std::string>() + ".SDS");
+  std::ofstream os(result["output"].as<std::string>() + ".SDS");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -973,24 +973,24 @@ SDS(cxxopts::Options& options){
 
 
 void 
-Quality(cxxopts::Options& options){
+Quality(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
   bool help = false;
-  if(!options.count("input") || !options.count("output")){
+  if(!result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: first_snp, last_snp." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "..." << std::endl;
     exit(0);
   }  
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Annotating quality of SNPs for " + options["input"].as<std::string>() + ".\n";
+  std::cerr << "Annotating quality of SNPs for " + result["input"].as<std::string>() + ".\n";
 
   std::string line, read;
 
@@ -998,8 +998,8 @@ Quality(cxxopts::Options& options){
 
   int N;
   igzstream is_N;
-  is_N.open(options["input"].as<std::string>() + ".anc");
-  if(is_N.fail()) is_N.open(options["input"].as<std::string>() + ".anc.gz");
+  is_N.open(result["input"].as<std::string>() + ".anc");
+  if(is_N.fail()) is_N.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_N.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
@@ -1010,8 +1010,8 @@ Quality(cxxopts::Options& options){
 
   int L = 0;
   igzstream is_L;
-  is_L.open(options["input"].as<std::string>() + ".mut");
-  if(is_L.fail()) is_L.open(options["input"].as<std::string>() + ".mut.gz"); 
+  is_L.open(result["input"].as<std::string>() + ".mut");
+  if(is_L.fail()) is_L.open(result["input"].as<std::string>() + ".mut.gz"); 
   if(is_L.fail()){
     std::cerr << "Error while opening .mut file." << std::endl;
     exit(1);
@@ -1027,21 +1027,21 @@ Quality(cxxopts::Options& options){
   int N_total = 2*data.N-1;
 
   int first_snp, last_snp;
-  if(!options.count("first_snp")){
+  if(!result.count("first_snp")){
     first_snp = 0;
   }else{
-    first_snp = options["first_snp"].as<int>();
+    first_snp = result["first_snp"].as<int>();
   }
-  if(!options.count("last_snp")){
+  if(!result.count("last_snp")){
     last_snp = data.L-1;
   }else{
-    last_snp = options["last_snp"].as<int>();
+    last_snp = result["last_snp"].as<int>();
   }
 
 
   //read mutations file
   Mutations mutations(data);
-  mutations.Read(options["input"].as<std::string>() + ".mut");
+  mutations.Read(result["input"].as<std::string>() + ".mut");
 
   std::vector<int> SNPmapping(mutations.info.size()), tree_index(mutations.info.size());
   std::vector<int>::iterator it_SNPmapping = SNPmapping.begin(), it_tree_index = tree_index.begin();
@@ -1058,13 +1058,13 @@ Quality(cxxopts::Options& options){
   int root = N_total-1;
   int snp_of_next_tree;
 
-  igzstream is_anc(options["input"].as<std::string>() + ".anc");
-  if(is_anc.fail()) is_anc.open(options["input"].as<std::string>() + ".anc.gz");
+  igzstream is_anc(result["input"].as<std::string>() + ".anc");
+  if(is_anc.fail()) is_anc.open(result["input"].as<std::string>() + ".anc.gz");
   if(is_anc.fail()){
     std::cerr << "Error while opening .anc file." << std::endl;
     exit(1);
   }
-  std::ofstream os(options["output"].as<std::string>() + ".qual");
+  std::ofstream os(result["output"].as<std::string>() + ".qual");
   if(is_anc.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -1208,24 +1208,24 @@ int main(int argc, char* argv[]){
     ("i,input", "Filename of .anc and .mut file without file extension", cxxopts::value<std::string>())
     ("o,output", "Output file", cxxopts::value<std::string>());
 
-  options.parse(argc, argv);
-  std::string mode = options["mode"].as<std::string>();
+  auto result = options.parse(argc, argv);
+  std::string mode = result["mode"].as<std::string>();
 
   if(!mode.compare("Selection")){
 
-    Selection(options);
+    Selection(options, result);
 
   }else if(!mode.compare("Frequency")){
 
-    Frequency(options);
+    Frequency(options, result);
 
   }else if(!mode.compare("Quality")){
 
-    Quality(options);
+    Quality(options, result);
 
   }else if(!mode.compare("SDS")){
 
-    SDS(options);
+    SDS(options, result);
 
   }else{
 
@@ -1237,11 +1237,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }

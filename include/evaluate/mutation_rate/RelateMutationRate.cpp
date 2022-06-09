@@ -14,7 +14,7 @@
 #include "mutations.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 #include "AvgMutationRate.cpp"
 
@@ -261,19 +261,19 @@ CountBasesByType(Data& data, const std::string& filename_mask, const std::string
 
 /////////////// Estimate mutation rate ////////////
 
-void FinalizeAvg(cxxopts::Options& options){
+void FinalizeAvg(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output")){
+  if( !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: chr, first_chr, last_chr." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Extract avg mutation rate from .bin file." << std::endl;
     exit(0);
@@ -287,7 +287,7 @@ void FinalizeAvg(cxxopts::Options& options){
 
   CollapsedMatrix<double> mutation_by_type_and_epoch, opportunity_by_type_and_epoch;
   FILE* fp; 
-  fp = fopen((options["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -296,11 +296,11 @@ void FinalizeAvg(cxxopts::Options& options){
 
   mutation_by_type_and_epoch.ReadFromFile(fp);
   fclose(fp);
-  fp = fopen((options["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");  
   opportunity_by_type_and_epoch.ReadFromFile(fp); 
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".rate");
+  std::ofstream os(result["output"].as<std::string>() + ".rate");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -341,19 +341,19 @@ void FinalizeAvg(cxxopts::Options& options){
 
 }
 
-void FinalizeMutationRate(cxxopts::Options& options){
+void FinalizeMutationRate(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output")){
+  if( !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: chr, first_chr, last_chr." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Extract mutation rate of 96 categories from .bin file." << std::endl;
     exit(0);
@@ -368,7 +368,7 @@ void FinalizeMutationRate(cxxopts::Options& options){
 
   CollapsedMatrix<double> mutation_by_type_and_epoch, opportunity_by_type_and_epoch;
   FILE* fp; 
-  fp = fopen((options["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -378,11 +378,11 @@ void FinalizeMutationRate(cxxopts::Options& options){
   mutation_by_type_and_epoch.ReadFromFile(fp);
   num_categories = mutation_by_type_and_epoch.subVectorSize(0);
   fclose(fp);
-  fp = fopen((options["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");  
   opportunity_by_type_and_epoch.ReadFromFile(fp); 
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".rate");
+  std::ofstream os(result["output"].as<std::string>() + ".rate");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -442,35 +442,35 @@ void FinalizeMutationRate(cxxopts::Options& options){
 
 }
 
-void SummarizeWholeGenome(cxxopts::Options& options){
+void SummarizeWholeGenome(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( ((!options.count("first_chr") || !options.count("last_chr")) && !options.count("chr")) || !options.count("output")){
+  if( ((!result.count("first_chr") || !result.count("last_chr")) && !result.count("chr")) || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: first_chr, last_chr, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Reads .bin files and summarizes them into one .bin file." << std::endl;
     exit(0);
   }  
 
 	std::vector<std::string> filenames;
-	std::string filename_base = options["output"].as<std::string>();
+	std::string filename_base = result["output"].as<std::string>();
 	std::vector<std::string> chromosomes;
 
 
-	if(options.count("chr")){
-		igzstream is_chr(options["chr"].as<std::string>());
+	if(result.count("chr")){
+		igzstream is_chr(result["chr"].as<std::string>());
 		if(is_chr.fail()){
-			std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 		}
 		std::cerr << "------------------------------------------------------" << std::endl;
-		std::cerr << "Summarizing mutation rates for chr in " << options["chr"].as<std::string>() << "..." << std::endl;
+		std::cerr << "Summarizing mutation rates for chr in " << result["chr"].as<std::string>() << "..." << std::endl;
 		std::string line;
 		while(getline(is_chr, line)){
 			filenames.push_back(filename_base + "_chr" + line + "_mut" + ".bin");
@@ -478,8 +478,8 @@ void SummarizeWholeGenome(cxxopts::Options& options){
 		}
 		is_chr.close();
 	}else{
-		int start     = options["first_chr"].as<int>(); 
-		int end       = options["last_chr"].as<int>();
+		int start     = result["first_chr"].as<int>(); 
+		int end       = result["last_chr"].as<int>();
 		std::cerr << "------------------------------------------------------" << std::endl;
 		std::cerr << "Summarizing mutation rates for chr " << start << " " << end << "..." << std::endl;
 		for(int chr = start; chr <= end; chr++){
@@ -546,16 +546,16 @@ void SummarizeWholeGenome(cxxopts::Options& options){
   }
 
   for(int chr = 0; chr < chromosomes.size(); chr++){
-		std::remove((options["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_mut" + ".bin").c_str());
-    std::remove((options["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_opp" + ".bin").c_str());
+		std::remove((result["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_mut" + ".bin").c_str());
+    std::remove((result["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_opp" + ".bin").c_str());
   }  
 
-  fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb"); 
+  fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb"); 
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
   mut_by_type_and_epoch.DumpToFile(fp);
   fclose(fp);
-  fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+  fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   opp_by_type_and_epoch.DumpToFile(fp);
   fclose(fp);
 
@@ -575,15 +575,15 @@ void SummarizeWholeGenome(cxxopts::Options& options){
 
 }
 
-void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
+void MutationRateWithContext(cxxopts::Options& options, cxxopts::ParseResult& result, std::string chr = "NA"){
 
   bool help = false;
-  if(!options.count("mask") || !options.count("ancestor") || !options.count("input") || !options.count("output")){
-    std::cout << "Not enough arguments supplied." << std::endl;
+  if(!result.count("mask") || !result.count("ancestor") || !result.count("input") || !result.count("output")){
+    std::cout << "Not enough resultts supplied." << std::endl;
     std::cout << "Needed: mask, ancestor, input, output. Optional: years_per_gen, bins, dist." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate mutation rate for 96 categories (Do not apply after using RemoveTreesWithFewMutations).." << std::endl;
     exit(0);
@@ -595,9 +595,9 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
 
   AncMutIterators ancmut;
   if(chr == "NA"){
-    ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   }else{
-    ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }   
   
   int N = ancmut.NumTips();
@@ -610,22 +610,22 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
   int N_total = 2*data.N-1;
 
   std::cerr << "------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating mutation rate for 96 categories " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Calculating mutation rate for 96 categories " << result["input"].as<std::string>() << " ..." << std::endl;
 
   ////////// read mutations file ///////////
 
   Mutations mutations;
   if(chr == "NA"){
-    mutations.Read(options["input"].as<std::string>() + ".mut");
+    mutations.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mutations.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mutations.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   std::vector<int> pos;
-  if(options.count("dist")){
+  if(result.count("dist")){
 
     int L_allsnps = 0;
-    igzstream is_L(options["dist"].as<std::string>());
+    igzstream is_L(result["dist"].as<std::string>());
     std::string unused;
     std::getline(is_L, unused); 
     while ( std::getline(is_L, unused) ){
@@ -634,7 +634,7 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
     is_L.close();
 
     pos.resize(L_allsnps);
-    igzstream is_dist(options["dist"].as<std::string>());
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
       std::cerr << "Error while opening file." << std::endl;
       exit(1);
@@ -660,20 +660,20 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
 
   ////////// EPOCHES ///////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
  
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
  
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -797,7 +797,7 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
 
   CollapsedMatrix<double> count_bases_by_type;
   //count_bases_by_type.resize(mutations.info.size(),dict_mutation_pattern.size());
-  CountBasesByType(data, options["mask"].as<std::string>(), options["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
+  CountBasesByType(data, result["mask"].as<std::string>(), result["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
 
   ////////////////////
   // Estimate mutation rate through time
@@ -915,18 +915,18 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
   //       opportunity_by_type_and_epoch 
   FILE* fp;
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
   }
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
   mutation_by_type_and_epoch.DumpToFile(fp);
   fclose(fp);
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
   }
   opportunity_by_type_and_epoch.DumpToFile(fp);
   fclose(fp);
@@ -950,15 +950,15 @@ void MutationRateWithContext(cxxopts::Options& options, std::string chr = "NA"){
 
 
 ////////////////////
-void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
+void MutationRateForCategory(cxxopts::Options& options, cxxopts::ParseResult& result, std::string chr = "NA"){
 
   bool help = false;
-  if(!options.count("mask") || !options.count("ancestor") || !options.count("mutcat") || !options.count("input") || !options.count("output")){
+  if(!result.count("mask") || !result.count("ancestor") || !result.count("mutcat") || !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: mask, ancestor, mutcat, input, output. Optional: years_per_gen, bins, dist." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate mutation rate for categories (Do not apply after using RemoveTreesWithFewMutations).." << std::endl;
     exit(0);
@@ -979,9 +979,9 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
   AncMutIterators ancmut;
 
   if(chr == "NA"){
-    ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   }else{
-    ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
   num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
   int N = (mtr.tree.nodes.size() + 1)/2.0;
@@ -990,25 +990,25 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
   int N_total = 2*data.N-1;
 
   std::cerr << "------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating mutation rate for categories " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Calculating mutation rate for categories " << result["input"].as<std::string>() << " ..." << std::endl;
 
   ////////// read mutations file ///////////
 
   Mutations mutations;
   if(chr == "NA"){
-    mutations.Read(options["input"].as<std::string>() + ".mut");
+    mutations.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mutations.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mutations.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   std::vector<int> pos;
-  if(options.count("dist")){
+  if(result.count("dist")){
 
     int L_allsnps = 0;
     igzstream is_L;
-    is_L.open(options["dist"].as<std::string>());
+    is_L.open(result["dist"].as<std::string>());
     if(is_L.fail()){
-      std::cerr << "Error opening file " << options["dist"].as<std::string>() << std::endl;
+      std::cerr << "Error opening file " << result["dist"].as<std::string>() << std::endl;
       exit(1);
     }
     std::string unused;
@@ -1019,7 +1019,7 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
     is_L.close();
 
     pos.resize(L_allsnps);
-    igzstream is_dist(options["dist"].as<std::string>());
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
       std::cerr << "Error while opening file." << std::endl;
       exit(1);
@@ -1045,20 +1045,20 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
 
   ////////// EPOCHES ///////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
  
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0;
   
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -1147,9 +1147,9 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
 
   //parse file storing
   //upstream downstream ancestral derived category
-  igzstream is_cat(options["mutcat"].as<std::string>());
+  igzstream is_cat(result["mutcat"].as<std::string>());
   if(is_cat.fail()){
-    std::cerr << "Error: unable to open file " << options["mutcat"].as<std::string>() << std::endl;
+    std::cerr << "Error: unable to open file " << result["mutcat"].as<std::string>() << std::endl;
   }
   getline(is_cat, line);
   //I have to make sure all 96 categories are represented in this file
@@ -1227,9 +1227,9 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
 
   CollapsedMatrix<double> count_bases_by_type;
   //count_bases_by_type.resize(mutations.info.size(),dict_mutation_pattern.size());
-  CountBasesByType(data, options["mask"].as<std::string>(), options["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
+  CountBasesByType(data, result["mask"].as<std::string>(), result["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
   fasta mask;
-  mask.Read(options["mask"].as<std::string>());
+  mask.Read(result["mask"].as<std::string>());
 
   ////////////////////////////////////////////////////////////////////////
   // Estimate mutation rate through time
@@ -1411,9 +1411,9 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
   //       opportunity_by_type_and_epoch 
   FILE* fp;
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
   }
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
@@ -1422,9 +1422,9 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
   }
   fclose(fp);
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
   }
   for(int n = 0; n < n_boot; n++){
     boot_opportunity_by_type_and_epoch[n].DumpToFile(fp);
@@ -1448,15 +1448,15 @@ void MutationRateForCategory(cxxopts::Options& options, std::string chr = "NA"){
 
 }
 
-void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr = "NA"){
+void MutationRateForCategoryForGroup(cxxopts::Options& options, cxxopts::ParseResult& result, std::string chr = "NA"){
 
   bool help = false;
-  if(!options.count("mask") || !options.count("ancestor") || !options.count("mutcat") || !options.count("pop_of_interest") || !options.count("poplabels") || !options.count("input") || !options.count("output")){
+  if(!result.count("mask") || !result.count("ancestor") || !result.count("mutcat") || !result.count("pop_of_interest") || !result.count("poplabels") || !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: mask, ancestor, mutcat, input, output, pop_of_interest, poplabels. Optional: years_per_gen, bins, dist." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate mutation rate for categories (Do not apply after using RemoveTreesWithFewMutations).." << std::endl;
     exit(0);
@@ -1471,13 +1471,13 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
   float num_bases_tree_persists = 0.0;
 
   Sample samples;
-  samples.Read(options["poplabels"].as<std::string>());
+  samples.Read(result["poplabels"].as<std::string>());
 
   std::string label;
-  if(!options.count("pop_of_interest")){
+  if(!result.count("pop_of_interest")){
     label = samples.AssignPopOfInterest("All");
   }else{
-    label = samples.AssignPopOfInterest(options["pop_of_interest"].as<std::string>());
+    label = samples.AssignPopOfInterest(result["pop_of_interest"].as<std::string>());
   }
 
   if(label.compare("All")){
@@ -1496,9 +1496,9 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
   AncMutIterators ancmut;
 
   if(chr == "NA"){
-    ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   }else{
-    ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
   num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
   int N = ancmut.NumTips();
@@ -1507,25 +1507,25 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
   int N_total = 2*data.N-1;
 
   std::cerr << "------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating mutation rate for categories " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Calculating mutation rate for categories " << result["input"].as<std::string>() << " ..." << std::endl;
 
   ////////// read mutations file ///////////
 
   Mutations mutations;
   if(chr == "NA"){
-    mutations.Read(options["input"].as<std::string>() + ".mut");
+    mutations.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mutations.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mutations.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   std::vector<int> pos;
-  if(options.count("dist")){
+  if(result.count("dist")){
 
     int L_allsnps = 0;
     igzstream is_L;
-    is_L.open(options["dist"].as<std::string>());
+    is_L.open(result["dist"].as<std::string>());
     if(is_L.fail()){
-      std::cerr << "Error opening file " << options["dist"].as<std::string>() << std::endl;
+      std::cerr << "Error opening file " << result["dist"].as<std::string>() << std::endl;
       exit(1);
     }
     std::string unused;
@@ -1536,7 +1536,7 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
     is_L.close();
 
     pos.resize(L_allsnps);
-    igzstream is_dist(options["dist"].as<std::string>());
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
       std::cerr << "Error while opening file." << std::endl;
       exit(1);
@@ -1562,16 +1562,16 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
 
   ////////// EPOCHES ///////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
  
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("binsfile")){
+  if(result.count("binsfile")){
   
-    std::ifstream is(options["binsfile"].as<std::string>());
+    std::ifstream is(result["binsfile"].as<std::string>());
     std::string line;
     while(getline(is, line)){
       if(epochs.size() == 0){
@@ -1589,15 +1589,15 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
       assert(epochs[i] <= epochs[i+1]);
     }
 
-  }else if(options.count("bins")){
+  }else if(result.count("bins")){
 
     double age = 0.0;
-    if(options.count("sample_age") > 0) age = options["sample_age"].as<float>();
+    if(result.count("sample_age") > 0) age = result["sample_age"].as<float>();
     double count = 0.0;
     double log_age = std::log(age * years_per_gen)/log_10;
 
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -1697,9 +1697,9 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
 
   //parse file storing
   //upstream downstream ancestral derived category
-  igzstream is_cat(options["mutcat"].as<std::string>());
+  igzstream is_cat(result["mutcat"].as<std::string>());
   if(is_cat.fail()){
-    std::cerr << "Error: unable to open file " << options["mutcat"].as<std::string>() << std::endl;
+    std::cerr << "Error: unable to open file " << result["mutcat"].as<std::string>() << std::endl;
   }
   getline(is_cat, line);
   //I have to make sure all 96 categories are represented in this file
@@ -1777,9 +1777,9 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
 
   CollapsedMatrix<double> count_bases_by_type;
   //count_bases_by_type.resize(mutations.info.size(),dict_mutation_pattern.size());
-  CountBasesByType(data, options["mask"].as<std::string>(), options["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
+  CountBasesByType(data, result["mask"].as<std::string>(), result["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
   fasta mask;
-  mask.Read(options["mask"].as<std::string>());
+  mask.Read(result["mask"].as<std::string>());
 
   ////////////////////////////////////////////////////////////////////////
   // Estimate mutation rate through time
@@ -1976,8 +1976,8 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
 
   std::random_device rd;  //Will be used to obtain a seed for the random number engine
   std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-  if(options.count("seed") > 0){
-    gen.seed(options["seed"].as<int>());
+  if(result.count("seed") > 0){
+    gen.seed(result["seed"].as<int>());
   }
   std::uniform_int_distribution<> sam(0, (ancmut.NumTrees()-1.0)/1000.0);
 
@@ -2036,9 +2036,9 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
   //       opportunity_by_type_and_epoch 
   FILE* fp;
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
   }
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
@@ -2047,9 +2047,9 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
   }
   fclose(fp);
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
   }
   for(int n = 0; n < n_boot; n++){
     boot_opportunity_by_type_and_epoch[n].DumpToFile(fp);
@@ -2073,18 +2073,18 @@ void MutationRateForCategoryForGroup(cxxopts::Options& options, std::string chr 
 
 }
 
-void SummarizeWholeGenomeForCategory(cxxopts::Options& options){
+void SummarizeWholeGenomeForCategory(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( ((!options.count("first_chr") || !options.count("last_chr")) && !options.count("chr")) || !options.count("output")){
+  if( ((!result.count("first_chr") || !result.count("last_chr")) && !result.count("chr")) || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: chr or (first_chr, last_chr), output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Reads .bin files and summarizes them into one .bin file." << std::endl;
     exit(0);
@@ -2092,15 +2092,15 @@ void SummarizeWholeGenomeForCategory(cxxopts::Options& options){
 
 	std::vector<std::string> filenames;
 	std::vector<std::string> chromosomes;
-	std::string filename_base = options["output"].as<std::string>();
+	std::string filename_base = result["output"].as<std::string>();
 
-	if(options.count("chr")){
-		igzstream is_chr(options["chr"].as<std::string>());
+	if(result.count("chr")){
+		igzstream is_chr(result["chr"].as<std::string>());
 		if(is_chr.fail()){
-			std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 		}
 		std::cerr << "------------------------------------------------------" << std::endl;
-		std::cerr << "Summarizing mutation rates for chr in " << options["chr"].as<std::string>() << "..." << std::endl;
+		std::cerr << "Summarizing mutation rates for chr in " << result["chr"].as<std::string>() << "..." << std::endl;
 		std::string line;
 		while(getline(is_chr, line)){
 			filenames.push_back(filename_base + "_chr" + line + "_mut" + ".bin");
@@ -2108,8 +2108,8 @@ void SummarizeWholeGenomeForCategory(cxxopts::Options& options){
 		}
 		is_chr.close();
 	}else{
-		int start     = options["first_chr"].as<int>(); 
-		int end       = options["last_chr"].as<int>();
+		int start     = result["first_chr"].as<int>(); 
+		int end       = result["last_chr"].as<int>();
 		std::cerr << "------------------------------------------------------" << std::endl;
 		std::cerr << "Summarizing mutation rates for chr " << start << " " << end << "..." << std::endl;
 		for(int chr = start; chr <= end; chr++){
@@ -2196,14 +2196,14 @@ void SummarizeWholeGenomeForCategory(cxxopts::Options& options){
 		std::remove((filename_base + "_chr" + chromosomes[chr] + "_opp" + ".bin").c_str());
 	}  
 
-  fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb"); 
+  fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb"); 
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
   for(int n = 0; n < n_boot; n++){
     mut_by_type_and_epoch[n].DumpToFile(fp);
   }
   fclose(fp);
-  fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+  fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   for(int n = 0; n < n_boot; n++){
     opp_by_type_and_epoch[n].DumpToFile(fp);
   }
@@ -2225,19 +2225,19 @@ void SummarizeWholeGenomeForCategory(cxxopts::Options& options){
 
 }
 
-void FinalizeMutationRateForCategory(cxxopts::Options& options){
+void FinalizeMutationRateForCategory(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output")){
+  if( !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: chr, first_chr, last_chr." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Extract mutation rate of 96 categories from .bin file." << std::endl;
     exit(0);
@@ -2251,7 +2251,7 @@ void FinalizeMutationRateForCategory(cxxopts::Options& options){
   std::vector<double> epoch;
 
   FILE* fp; 
-  fp = fopen((options["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -2267,14 +2267,14 @@ void FinalizeMutationRateForCategory(cxxopts::Options& options){
     num_categories = boot_mutation_by_type_and_epoch[n].subVectorSize(0);
   }
   fclose(fp);
-  fp = fopen((options["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");    
+  fp = fopen((result["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");    
   for(int n = 0; n < n_boot; n++){
     boot_opportunity_by_type_and_epoch[n].ReadFromFile(fp);
   }
   fclose(fp);
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".rate");
+  std::ofstream os(result["output"].as<std::string>() + ".rate");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -2323,15 +2323,15 @@ void FinalizeMutationRateForCategory(cxxopts::Options& options){
 
 
 ////////////////////
-void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
+void MutationRateForPattern(cxxopts::Options& options, cxxopts::ParseResult& result, std::string chr = "NA"){
 
   bool help = false;
-  if(!options.count("mask") || !options.count("ancestor") || !options.count("mutcat") || !options.count("input") || !options.count("output")){
+  if(!result.count("mask") || !result.count("ancestor") || !result.count("mutcat") || !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: mask, ancestor, mutcat, input, output. Optional: years_per_gen, bins, dist." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Calculate mutation rate for specific pattern (Do not apply after using RemoveTreesWithFewMutations).." << std::endl;
     exit(0);
@@ -2352,9 +2352,9 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
   AncMutIterators ancmut;
 
   if(chr == "NA"){
-    ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   }else{
-    ancmut.OpenFiles(options["input"].as<std::string>() + "_chr" + chr + ".anc", options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    ancmut.OpenFiles(result["input"].as<std::string>() + "_chr" + chr + ".anc", result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
   num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
   int N = (mtr.tree.nodes.size() + 1)/2.0;
@@ -2363,25 +2363,25 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
   int N_total = 2*data.N-1;
 
   std::cerr << "------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating mutation rate for categories " << options["input"].as<std::string>() << " ..." << std::endl;
+  std::cerr << "Calculating mutation rate for categories " << result["input"].as<std::string>() << " ..." << std::endl;
 
   ////////// read mutations file ///////////
 
   Mutations mutations;
   if(chr == "NA"){
-    mutations.Read(options["input"].as<std::string>() + ".mut");
+    mutations.Read(result["input"].as<std::string>() + ".mut");
   }else{
-    mutations.Read(options["input"].as<std::string>() + "_chr" + chr + ".mut");
+    mutations.Read(result["input"].as<std::string>() + "_chr" + chr + ".mut");
   }
 
   std::vector<int> pos;
-  if(options.count("dist")){
+  if(result.count("dist")){
 
     int L_allsnps = 0;
     igzstream is_L;
-    is_L.open(options["dist"].as<std::string>());
+    is_L.open(result["dist"].as<std::string>());
     if(is_L.fail()){
-      std::cerr << "Error opening file " << options["dist"].as<std::string>() << std::endl;
+      std::cerr << "Error opening file " << result["dist"].as<std::string>() << std::endl;
       exit(1);
     }
     std::string unused;
@@ -2392,7 +2392,7 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
     is_L.close();
 
     pos.resize(L_allsnps);
-    igzstream is_dist(options["dist"].as<std::string>());
+    igzstream is_dist(result["dist"].as<std::string>());
     if(is_dist.fail()){
       std::cerr << "Error while opening file." << std::endl;
       exit(1);
@@ -2418,21 +2418,21 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
 
   ////////// EPOCHES ///////////
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
 
  
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0; 
  
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -2521,9 +2521,9 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
 
   //parse file storing
   //upstream downstream ancestral derived category
-  igzstream is_cat(options["mutcat"].as<std::string>());
+  igzstream is_cat(result["mutcat"].as<std::string>());
   if(is_cat.fail()){
-    std::cerr << "Error: unable to open file " << options["mutcat"].as<std::string>() << std::endl;
+    std::cerr << "Error: unable to open file " << result["mutcat"].as<std::string>() << std::endl;
   }
   getline(is_cat, line);
   //I have to make sure all 96 categories are represented in this file
@@ -2601,7 +2601,7 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
 
   CollapsedMatrix<double> count_bases_by_type;
   //count_bases_by_type.resize(mutations.info.size(),dict_mutation_pattern.size());
-  CountBasesByType(data, options["mask"].as<std::string>(), options["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
+  CountBasesByType(data, result["mask"].as<std::string>(), result["ancestor"].as<std::string>(), count_bases_by_type, dict_mutation_pattern, mutations, pos);
 
   ////////////////////////////////////////////////////////////////////////
   // Estimate mutation rate through time
@@ -2783,9 +2783,9 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
   //       opportunity_by_type_and_epoch 
   FILE* fp;
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_mut" + ".bin" ).c_str(), "wb");  
   }
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
@@ -2794,9 +2794,9 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
   }
   fclose(fp);
   if(chr == "NA"){
-    fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   }else{
-    fp = fopen((options["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
+    fp = fopen((result["output"].as<std::string>() + "_chr" + chr + "_opp" + ".bin" ).c_str(), "wb");  
   }
   for(int n = 0; n < n_boot; n++){
     boot_opportunity_by_type_and_epoch[n].DumpToFile(fp);
@@ -2820,18 +2820,18 @@ void MutationRateForPattern(cxxopts::Options& options, std::string chr = "NA"){
 
 }
 
-void SummarizeWholeGenomeForPattern(cxxopts::Options& options){
+void SummarizeWholeGenomeForPattern(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( ((!options.count("first_chr") || !options.count("last_chr")) && !options.count("chr")) || !options.count("output")){
+  if( ((!result.count("first_chr") || !result.count("last_chr")) && !result.count("chr")) || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: chr or (first_chr, last_chr), output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Reads .bin files and summarizes them into one .bin file." << std::endl;
     exit(0);
@@ -2839,15 +2839,15 @@ void SummarizeWholeGenomeForPattern(cxxopts::Options& options){
 
 	std::vector<std::string> filenames;
 	std::vector<std::string> chromosomes;
-	std::string filename_base = options["output"].as<std::string>();
+	std::string filename_base = result["output"].as<std::string>();
 
-	if(options.count("chr")){
-		igzstream is_chr(options["chr"].as<std::string>());
+	if(result.count("chr")){
+		igzstream is_chr(result["chr"].as<std::string>());
 		if(is_chr.fail()){
-			std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 		}
 		std::cerr << "------------------------------------------------------" << std::endl;
-		std::cerr << "Summarizing mutation rates for chr in " << options["chr"].as<std::string>() << "..." << std::endl;
+		std::cerr << "Summarizing mutation rates for chr in " << result["chr"].as<std::string>() << "..." << std::endl;
 		std::string line;
 		while(getline(is_chr, line)){
 		  filenames.push_back(filename_base + "_chr" + line + "_mut" + ".bin");
@@ -2855,8 +2855,8 @@ void SummarizeWholeGenomeForPattern(cxxopts::Options& options){
 		}
 		is_chr.close();
 	}else{
-		int start     = options["first_chr"].as<int>(); 
-		int end       = options["last_chr"].as<int>();
+		int start     = result["first_chr"].as<int>(); 
+		int end       = result["last_chr"].as<int>();
 		std::cerr << "------------------------------------------------------" << std::endl;
 		std::cerr << "Summarizing mutation rates for chr " << start << " " << end << "..." << std::endl;
 		for(int chr = start; chr <= end; chr++){
@@ -2933,18 +2933,18 @@ void SummarizeWholeGenomeForPattern(cxxopts::Options& options){
   }
 
   for(int chr = 0; chr < chromosomes.size(); chr++){ 
-    std::remove((options["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_mut" + ".bin").c_str());
-    std::remove((options["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_opp" + ".bin").c_str());
+    std::remove((result["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_mut" + ".bin").c_str());
+    std::remove((result["input"].as<std::string>() + "_chr" + chromosomes[chr] + "_opp" + ".bin").c_str());
   }  
 
-  fp = fopen((options["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb"); 
+  fp = fopen((result["output"].as<std::string>() + "_mut" + ".bin" ).c_str(), "wb"); 
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(double), epochs.size(), fp);
   for(int n = 0; n < n_boot; n++){
     mut_by_type_and_epoch[n].DumpToFile(fp);
   }
   fclose(fp);
-  fp = fopen((options["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
+  fp = fopen((result["output"].as<std::string>() + "_opp" + ".bin" ).c_str(), "wb");  
   for(int n = 0; n < n_boot; n++){
     opp_by_type_and_epoch[n].DumpToFile(fp);
   }
@@ -2966,19 +2966,19 @@ void SummarizeWholeGenomeForPattern(cxxopts::Options& options){
 
 }
 
-void FinalizeMutationRateForPattern(cxxopts::Options& options){
+void FinalizeMutationRateForPattern(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output")){
+  if( !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: chr, first_chr, last_chr." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Extract mutation rate of 96 categories from .bin file." << std::endl;
     exit(0);
@@ -3003,7 +3003,7 @@ void FinalizeMutationRateForPattern(cxxopts::Options& options){
   } 
    
   FILE* fp; 
-  fp = fopen((options["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -3015,14 +3015,14 @@ void FinalizeMutationRateForPattern(cxxopts::Options& options){
     num_categories = boot_mutation_by_type_and_epoch[n].subVectorSize(0);
   }
   fclose(fp);
-  fp = fopen((options["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");    
+  fp = fopen((result["input"].as<std::string>() + "_opp" + ".bin" ).c_str(), "r");    
   for(int n = 0; n < n_boot; n++){
     boot_opportunity_by_type_and_epoch[n].ReadFromFile(fp);
   }
   fclose(fp);
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".rate");
+  std::ofstream os(result["output"].as<std::string>() + ".rate");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -3073,18 +3073,18 @@ void FinalizeMutationRateForPattern(cxxopts::Options& options){
 
 //////////////// Other applications ///////////////
 
-void BranchLengthVsMutations(cxxopts::Options& options){
+void BranchLengthVsMutations(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   std::cerr << "------------------------------------------------------" << std::endl;
   std::cerr << "Calculating number of mutations vs opportunity..." << std::endl;
 
   bool help = false;
-  if(!options.count("pos") || !options.count("input") || !options.count("output")){
+  if(!result.count("pos") || !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: pos, input, output. Optional: years_per_gen, mut." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "..." << std::endl;
     exit(0);
@@ -3094,7 +3094,7 @@ void BranchLengthVsMutations(cxxopts::Options& options){
 
   //parse data
   AncMutIterators ancmut;
-  ancmut.OpenFiles(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+  ancmut.OpenFiles(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
   
   int N = ancmut.NumTips();
   int L = ancmut.NumSnps();
@@ -3108,20 +3108,20 @@ void BranchLengthVsMutations(cxxopts::Options& options){
 
   //epoch
   float years_per_gen = 28.0;
-  if(options.count("years_per_gen")){
-    years_per_gen = options["years_per_gen"].as<float>();
+  if(result.count("years_per_gen")){
+    years_per_gen = result["years_per_gen"].as<float>();
   }
  
   int num_epochs;
   std::vector<double> epochs;
   float log_10 = std::log(10);
-  if(options.count("bins")){
+  if(result.count("bins")){
 
     double log_age = std::log(0);
     double age = 0; 
  
     double epoch_lower, epoch_upper, epoch_step;
-    std::string str_epochs = options["bins"].as<std::string>();
+    std::string str_epochs = result["bins"].as<std::string>();
     std::string tmp;
     int i = 0;
     tmp = "";
@@ -3194,7 +3194,7 @@ void BranchLengthVsMutations(cxxopts::Options& options){
 
   //read mutations file
   Mutations mutations(data);
-  mutations.Read(options["input"].as<std::string>() + ".mut");
+  mutations.Read(result["input"].as<std::string>() + ".mut");
 
   ///////////////////
   // Count number of bases by type
@@ -3232,7 +3232,7 @@ void BranchLengthVsMutations(cxxopts::Options& options){
   num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
   mtr.tree.GetCoordinates(coordinates);
 
-  std::ofstream os(options["output"].as<std::string>() + ".xy");
+  std::ofstream os(result["output"].as<std::string>() + ".xy");
 
   std::fill(num_mutations_in_epoch.begin(), num_mutations_in_epoch.end(), 0.0);
   std::fill(branch_lengths_in_epoch.begin(), branch_lengths_in_epoch.end(), 0.0);
@@ -3339,19 +3339,19 @@ void BranchLengthVsMutations(cxxopts::Options& options){
 
 }
 
-void FinalizeMutationCount(cxxopts::Options& options){
+void FinalizeMutationCount(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output")){
+  if( !result.count("input") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output. Optional: chr, first_chr, last_chr." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Estimate population size using coalescent rate." << std::endl;
     exit(0);
@@ -3366,7 +3366,7 @@ void FinalizeMutationCount(cxxopts::Options& options){
 
   CollapsedMatrix<double> mutation_by_type_and_epoch, opportunity_by_type_and_epoch;
   FILE* fp; 
-  fp = fopen((options["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
+  fp = fopen((result["input"].as<std::string>() + "_mut" + ".bin" ).c_str(), "r");  
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -3375,7 +3375,7 @@ void FinalizeMutationCount(cxxopts::Options& options){
   mutation_by_type_and_epoch.ReadFromFile(fp);
   fclose(fp);
 
-  std::ofstream os(options["output"].as<std::string>() + ".mcount");
+  std::ofstream os(result["output"].as<std::string>() + ".mcount");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -3447,54 +3447,54 @@ int main(int argc, char* argv[]){
     ("o,output", "Output file", cxxopts::value<std::string>())
     ("seed", "Optional. Random seed.", cxxopts::value<int>());
 
-  options.parse(argc, argv);
-  std::string mode = options["mode"].as<std::string>();
+  auto result = options.parse(argc, argv);
+  std::string mode = result["mode"].as<std::string>();
 
   if(!mode.compare("WithContext")){
 
     //////////////////////////////////
     //Program options
     bool help = false;
-    if( !options.count("input") || !options.count("output")){
+    if( !result.count("input") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: mask, ancestor, input, output. Optional: chr, first_chr, last_chr, years_per_gen, bins, dist." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Calculate mutation rate for 96 categories (Do not apply after using RemoveTreesWithFewMutations)." << std::endl;
       exit(0);
     } 
-    if(options["input"].as<std::string>() != options["output"].as<std::string>()){
+    if(result["input"].as<std::string>() != result["output"].as<std::string>()){
       std::cerr << "Sorry, in this mode input and output need to be the same!." << std::endl;
       exit(1);
     }
 
-		if(options.count("chr")){
-			igzstream is_chr(options["chr"].as<std::string>());
+		if(result.count("chr")){
+			igzstream is_chr(result["chr"].as<std::string>());
 			if(is_chr.fail()){
-				std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+				std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 			}
 			std::string line;
 			while(getline(is_chr, line)){
-				MutationRateWithContext(options, line);
+				MutationRateWithContext(options, result, line);
 			}
 			is_chr.close();
-			SummarizeWholeGenome(options);      
-			FinalizeMutationRate(options);
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+			SummarizeWholeGenome(options, result);      
+			FinalizeMutationRate(options, result);
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      for(int chr = options["first_chr"].as<int>(); chr <= options["last_chr"].as<int>(); chr++){ 
-        MutationRateWithContext(options, std::to_string(chr));
+      for(int chr = result["first_chr"].as<int>(); chr <= result["last_chr"].as<int>(); chr++){ 
+        MutationRateWithContext(options, result, std::to_string(chr));
       }
-      SummarizeWholeGenome(options);      
-      FinalizeMutationRate(options);
+      SummarizeWholeGenome(options, result);      
+      FinalizeMutationRate(options, result);
     }else{
-      MutationRateWithContext(options);
-      FinalizeMutationRate(options);
+      MutationRateWithContext(options, result);
+      FinalizeMutationRate(options, result);
     }
 
   }else if(!mode.compare("MutationRateForCategory")){
@@ -3502,134 +3502,134 @@ int main(int argc, char* argv[]){
     //////////////////////////////////
     //Program options
     bool help = false;
-    if( !options.count("input") || !options.count("output")){
+    if( !result.count("input") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: mask, ancestor, mutcat, input, output. Optional: chr, first_chr, last_chr, years_per_gen, bins, dist." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Calculate mutation rate for categories specified in input.mutcat (Do not apply after using RemoveTreesWithFewMutations)." << std::endl;
       exit(0);
     } 
-    if(options["input"].as<std::string>() != options["output"].as<std::string>()){
+    if(result["input"].as<std::string>() != result["output"].as<std::string>()){
       std::cerr << "Sorry, in this mode input and output need to be the same!." << std::endl;
       exit(1);
     }
 
-		if(options.count("chr")){
-			igzstream is_chr(options["chr"].as<std::string>());
+		if(result.count("chr")){
+			igzstream is_chr(result["chr"].as<std::string>());
 			if(is_chr.fail()){
-				std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+				std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 			}
 			std::string line;
 			while(getline(is_chr, line)){
-				MutationRateForCategory(options, line);
+				MutationRateForCategory(options, result, line);
 			}
 			is_chr.close();
-			SummarizeWholeGenomeForCategory(options);      
-			FinalizeMutationRateForCategory(options);
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+			SummarizeWholeGenomeForCategory(options, result);      
+			FinalizeMutationRateForCategory(options, result);
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      for(int chr = options["first_chr"].as<int>(); chr <= options["last_chr"].as<int>(); chr++){ 
-        MutationRateForCategory(options, std::to_string(chr));
+      for(int chr = result["first_chr"].as<int>(); chr <= result["last_chr"].as<int>(); chr++){ 
+        MutationRateForCategory(options, result, std::to_string(chr));
       }
-      SummarizeWholeGenomeForCategory(options);      
-      FinalizeMutationRateForCategory(options);
+      SummarizeWholeGenomeForCategory(options, result);      
+      FinalizeMutationRateForCategory(options, result);
     }else{
-      MutationRateForCategory(options);
-      FinalizeMutationRateForCategory(options);
+      MutationRateForCategory(options, result);
+      FinalizeMutationRateForCategory(options, result);
     }
 
 
   }else if(!mode.compare("ForCategoryForChromosome")){
 
-    MutationRateForCategory(options);
+    MutationRateForCategory(options, result);
 
   }else if(!mode.compare("ForCategoryForPopForChromosome")){
 
-    MutationRateForCategoryForGroup(options);
+    MutationRateForCategoryForGroup(options, result);
 
   }else if(!mode.compare("WithContextForChromosome")){
 
-    MutationRateWithContext(options);
+    MutationRateWithContext(options, result);
 
   }else if(!mode.compare("SummarizeForGenome")){
 
-    SummarizeWholeGenome(options);
+    SummarizeWholeGenome(options, result);
 
   }else if(!mode.compare("SummarizeForGenomeForCategory")){
 
-    SummarizeWholeGenomeForCategory(options);
+    SummarizeWholeGenomeForCategory(options, result);
 
   }else if(!mode.compare("Finalize")){
 
-		if(options.count("chr")){
-			SummarizeWholeGenome(options);
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+		if(result.count("chr")){
+			SummarizeWholeGenome(options, result);
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      SummarizeWholeGenome(options);
+      SummarizeWholeGenome(options, result);
     }
-    FinalizeMutationRate(options);
+    FinalizeMutationRate(options, result);
 
   }else if(!mode.compare("FinalizeForCategory")){
 
-		if(options.count("chr")){
-			SummarizeWholeGenomeForCategory(options);
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+		if(result.count("chr")){
+			SummarizeWholeGenomeForCategory(options, result);
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      SummarizeWholeGenomeForCategory(options);
+      SummarizeWholeGenomeForCategory(options, result);
     }
-    FinalizeMutationRateForCategory(options);
+    FinalizeMutationRateForCategory(options, result);
 
   }else if(!mode.compare("FinalizeMutationCount")){
 
-		if(options.count("chr")){
-			SummarizeWholeGenome(options);
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+		if(result.count("chr")){
+			SummarizeWholeGenome(options, result);
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      SummarizeWholeGenome(options);
+      SummarizeWholeGenome(options, result);
     }
 
-    FinalizeMutationCount(options);
+    FinalizeMutationCount(options, result);
 
   }else if(!mode.compare("FinalizeAvg")){
 
-		if(options.count("chr")){
-			SummarizeWholeGenome(options);
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+		if(result.count("chr")){
+			SummarizeWholeGenome(options, result);
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      SummarizeWholeGenome(options);
+      SummarizeWholeGenome(options, result);
     }
 
-    FinalizeAvg(options);
+    FinalizeAvg(options, result);
 
   }else if(!mode.compare("Avg")){
 
-    AvgMutationRate(options);
+    AvgMutationRate(options, result);
 
   }else if(!mode.compare("MutationDensity")){
 
-    MutationDensity(options);
+    MutationDensity(options, result);
 
   }else if(!mode.compare("XY")){
 
-    BranchLengthVsMutations(options);
+    BranchLengthVsMutations(options, result);
 
   }else{
 
@@ -3641,11 +3641,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }

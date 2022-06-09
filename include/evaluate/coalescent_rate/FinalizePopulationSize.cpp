@@ -4,24 +4,24 @@
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <ctime>
 
-int FinalizePopulationSize(cxxopts::Options& options){
+int FinalizePopulationSize(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Estimate population size using coalescence rate." << std::endl;
     exit(0);
@@ -40,7 +40,7 @@ int FinalizePopulationSize(cxxopts::Options& options){
   int num_epochs;
   std::vector<float> epoch;
 
-  FILE* fp = fopen((options["output"].as<std::string>() + ".bin").c_str(),"rb");
+  FILE* fp = fopen((result["output"].as<std::string>() + ".bin").c_str(),"rb");
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -90,7 +90,7 @@ int FinalizePopulationSize(cxxopts::Options& options){
     }
   }
 
-  std::ofstream os(options["output"].as<std::string>() + ".coal");
+  std::ofstream os(result["output"].as<std::string>() + ".coal");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -135,18 +135,18 @@ int FinalizePopulationSize(cxxopts::Options& options){
 
 }
 
-int FinalizePopulationSizeByGroup(cxxopts::Options& options){
+int FinalizePopulationSizeByGroup(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("poplabels") || !options.count("output")){
+  if(!result.count("poplabels") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: poplabels, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Estimate population size using coalescence rate." << std::endl;
     exit(0);
@@ -158,7 +158,7 @@ int FinalizePopulationSizeByGroup(cxxopts::Options& options){
   ////////// read labels of sequences //////////
 
   Sample sample;
-  sample.Read(options["poplabels"].as<std::string>());
+  sample.Read(result["poplabels"].as<std::string>());
   int N = sample.group_of_haplotype.size();
 
   /////////////////// INITIALIZE EPOCHES //////////////////////
@@ -166,7 +166,7 @@ int FinalizePopulationSizeByGroup(cxxopts::Options& options){
   int num_epochs;
   std::vector<float> epoch;
 
-  FILE* fp = fopen((options["output"].as<std::string>() + ".bin").c_str(),"rb");
+  FILE* fp = fopen((result["output"].as<std::string>() + ".bin").c_str(),"rb");
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -236,7 +236,7 @@ int FinalizePopulationSizeByGroup(cxxopts::Options& options){
 
   /////////////////// OUTPUT //////////////////////
 
-  std::ofstream os(options["output"].as<std::string>() + ".coal");
+  std::ofstream os(result["output"].as<std::string>() + ".coal");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -290,18 +290,18 @@ int FinalizePopulationSizeByGroup(cxxopts::Options& options){
 
 }
 
-int FinalizePopulationSizeByHaplotype(cxxopts::Options& options){
+int FinalizePopulationSizeByHaplotype(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Estimate population size using coalescence rate." << std::endl;
     exit(0);
@@ -319,7 +319,7 @@ int FinalizePopulationSizeByHaplotype(cxxopts::Options& options){
   int num_epochs;
   std::vector<float> epoch;
 
-  FILE* fp = fopen((options["output"].as<std::string>() + ".bin").c_str(),"rb");
+  FILE* fp = fopen((result["output"].as<std::string>() + ".bin").c_str(),"rb");
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -361,7 +361,7 @@ int FinalizePopulationSizeByHaplotype(cxxopts::Options& options){
   }
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".coal");
+  std::ofstream os(result["output"].as<std::string>() + ".coal");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -408,18 +408,18 @@ int FinalizePopulationSizeByHaplotype(cxxopts::Options& options){
 
 }
 
-int FinalizeCoalescenceCount(cxxopts::Options& options){
+int FinalizeCoalescenceCount(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Estimate population size using coalescence rate." << std::endl;
     exit(0);
@@ -437,7 +437,7 @@ int FinalizeCoalescenceCount(cxxopts::Options& options){
   int num_epochs;
   std::vector<float> epoch;
 
-  FILE* fp = fopen((options["output"].as<std::string>() + ".bin").c_str(),"rb");
+  FILE* fp = fopen((result["output"].as<std::string>() + ".bin").c_str(),"rb");
   assert(fp != NULL);
 
   fread(&num_epochs, sizeof(int), 1, fp);
@@ -465,7 +465,7 @@ int FinalizeCoalescenceCount(cxxopts::Options& options){
   int block_size = 1e6;
   int chr = 1;
   Mutations mut;
-  mut.Read(options["input"].as<std::string>() + "_chr" + std::to_string(chr) + ".mut");
+  mut.Read(result["input"].as<std::string>() + "_chr" + std::to_string(chr) + ".mut");
 
   for(; it_coalescent_rate_data != std::prev(coalescent_rate_data.end(),1);){
    
@@ -493,12 +493,12 @@ int FinalizeCoalescenceCount(cxxopts::Options& options){
       chr++;
       snp = 0;
       tree_index = 0;
-      mut.Read(options["input"].as<std::string>() + "_chr" + std::to_string(chr) + ".mut");
+      mut.Read(result["input"].as<std::string>() + "_chr" + std::to_string(chr) + ".mut");
     }
   }    
 
 
-  std::ofstream os(options["output"].as<std::string>() + ".coal");
+  std::ofstream os(result["output"].as<std::string>() + ".coal");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);

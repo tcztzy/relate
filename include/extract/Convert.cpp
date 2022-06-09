@@ -6,7 +6,7 @@
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <ctime>
 
 float           
@@ -164,45 +164,45 @@ ReadNewick(std::string line, int& bp_start, int& bp_end, Tree& tree){
 }
 
 void 
-ConvertNewickToTimeb(cxxopts::Options& options){
+ConvertNewickToTimeb(cxxopts::Options options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("input") || !options.count("anc_genome") || !options.count("output")){
+	if(!result.count("input") || !result.count("anc_genome") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: input, anc_genome, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Converts newick/sites to timeb." << std::endl;
 		exit(0);
 	}  
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
-	std::cerr << "Convert newick/sites to timeb for file" << options["input"].as<std::string>() << ".newick/sites..." << std::endl;
+	std::cerr << "Convert newick/sites to timeb for file" << result["input"].as<std::string>() << ".newick/sites..." << std::endl;
 
 
 	fasta anc_genome;
-	anc_genome.Read(options["anc_genome"].as<std::string>());
+	anc_genome.Read(result["anc_genome"].as<std::string>());
 
-	std::ifstream is_newick(options["input"].as<std::string>() + ".newick");
+	std::ifstream is_newick(result["input"].as<std::string>() + ".newick");
 	if(is_newick.fail()){
-		is_newick.open(options["input"].as<std::string>() + ".newick.gz");
+		is_newick.open(result["input"].as<std::string>() + ".newick.gz");
 	}
 	if(is_newick.fail()){
-		std::cerr << "Failed to open file " << options["input"].as<std::string>() + ".newick" << std::endl;
+		std::cerr << "Failed to open file " << result["input"].as<std::string>() + ".newick" << std::endl;
 		exit(1);
 	}
 
-	std::ifstream is_sites(options["input"].as<std::string>() + ".sites");
+	std::ifstream is_sites(result["input"].as<std::string>() + ".sites");
 	if(is_sites.fail()){
-		is_sites.open(options["input"].as<std::string>() + ".sites.gz");
+		is_sites.open(result["input"].as<std::string>() + ".sites.gz");
 	}
 	if(is_sites.fail()){
-		std::cerr << "Failed to open file " << options["input"].as<std::string>() + ".sites" << std::endl;
+		std::cerr << "Failed to open file " << result["input"].as<std::string>() + ".sites" << std::endl;
 		exit(1);
 	}
 	std::string line_newick, line_sites, dummy;
@@ -302,7 +302,7 @@ ConvertNewickToTimeb(cxxopts::Options& options){
 	CorrTrees::iterator it_seq = anc.seq.begin();
 
 	//use anc and hap to generate timeb file
-	std::string filename = options["output"].as<std::string>() + ".timeb";
+	std::string filename = result["output"].as<std::string>() + ".timeb";
 	FILE* fp = fopen(filename.c_str(), "wb");
 
 	int num_mapping_SNPs = pos.size();

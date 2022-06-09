@@ -3,7 +3,7 @@
 #include "FinalizePopulationSize.cpp"
 #include "ReEstimateBranchLengths.cpp"
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <string>
 
 int main(int argc, char* argv[]){
@@ -33,9 +33,9 @@ int main(int argc, char* argv[]){
     ("groups", "Names of groups of interest for conditional coalescence rates", cxxopts::value<std::string>())
     ("seed", "Seed for MCMC in branch lengths estimation.", cxxopts::value<int>());
   
-  options.parse(argc, argv);
+  auto result = options.parse(argc, argv);
 
-  std::string mode = options["mode"].as<std::string>();
+  std::string mode = result["mode"].as<std::string>();
   
   if(!mode.compare("EstimatePopulationSize")){
  
@@ -43,106 +43,106 @@ int main(int argc, char* argv[]){
     //Do this for whole chromosome
     //The Final Finalize should be a FinalizeByGroup  
     bool help = false;
-    if(!options.count("input") || !options.count("output")){
+    if(!result.count("input") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: input, output. Optional: first_chr, last_chr, poplabels, years_per_gen, bins." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Estimate population size." << std::endl;
       exit(0);
     }  
 
-		if(options.count("chr")){
-			igzstream is_chr(options["chr"].as<std::string>());
+		if(result.count("chr")){
+			igzstream is_chr(result["chr"].as<std::string>());
 			if(is_chr.fail()){
-				std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+				std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 			}
 			std::string line;
 			while(getline(is_chr, line)){
-				CoalescentRateForSection(options, line);
+				CoalescentRateForSection(options, result, line);
 			}
 			is_chr.close();
-			SummarizeCoalescentRateForGenome(options);  
-		}else if(options.count("first_chr") && options.count("last_chr")){
-      if(options["first_chr"].as<int>() < 0 || options["last_chr"].as<int>() < 0){
+			SummarizeCoalescentRateForGenome(options, result);  
+		}else if(result.count("first_chr") && result.count("last_chr")){
+      if(result["first_chr"].as<int>() < 0 || result["last_chr"].as<int>() < 0){
         std::cerr << "Do not use negative chr indices." << std::endl;
         exit(1);
       }
-      for(int chr = options["first_chr"].as<int>(); chr <= options["last_chr"].as<int>(); chr++){ 
-        CoalescentRateForSection(options, std::to_string(chr));
+      for(int chr = result["first_chr"].as<int>(); chr <= result["last_chr"].as<int>(); chr++){ 
+        CoalescentRateForSection(options, result, std::to_string(chr));
       }
-      SummarizeCoalescentRateForGenome(options);  
+      SummarizeCoalescentRateForGenome(options, result);  
     }else{
-      CoalescentRateForSection(options);
+      CoalescentRateForSection(options, result);
     }    
 
-    if(options.count("poplabels")){
-      if(options["poplabels"].as<std::string>() == "hap"){
-        FinalizePopulationSizeByHaplotype(options);
+    if(result.count("poplabels")){
+      if(result["poplabels"].as<std::string>() == "hap"){
+        FinalizePopulationSizeByHaplotype(options, result);
       }else{
-        FinalizePopulationSizeByGroup(options);
+        FinalizePopulationSizeByGroup(options, result);
       }
     }else{
-      FinalizePopulationSize(options);
+      FinalizePopulationSize(options, result);
     }
 
   }else if(!mode.compare("CoalRateForTree")){
   
-    CoalescenceRateForTree(options);
+    CoalescenceRateForTree(options, result);
   
   }else if(!mode.compare("GenerateConstCoalFile")){
   
-    GenerateConstCoal(options);
+    GenerateConstCoal(options, result);
   
   }else if(!mode.compare("CoalescentRateForSection")){
   
-    CoalescentRateForSection(options);
+    CoalescentRateForSection(options, result);
   
   }else if(!mode.compare("SummarizeCoalescentRateForGenome")){
 
-    SummarizeCoalescentRateForGenome(options);
+    SummarizeCoalescentRateForGenome(options, result);
 
   }else if(!mode.compare("FinalizePopulationSize")){
 
     bool help = false;
-    if(!options.count("output")){
+    if(!result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed:output. Optional: poplabels." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Estimate population size." << std::endl;
       exit(0);
     }  
 
-    if(options.count("poplabels")){
-      if(options["poplabels"].as<std::string>() == "hap"){
-        FinalizePopulationSizeByHaplotype(options);
+    if(result.count("poplabels")){
+      if(result["poplabels"].as<std::string>() == "hap"){
+        FinalizePopulationSizeByHaplotype(options, result);
       }else{
-        FinalizePopulationSizeByGroup(options);
+        FinalizePopulationSizeByGroup(options, result);
       }
     }else{
-      FinalizePopulationSize(options);
+      FinalizePopulationSize(options, result);
     }
 
   }else if(!mode.compare("FinalizeCoalescenceCount")){
 
     bool help = false;
-    if(!options.count("output")){
+    if(!result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed:input, output." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Count number of coalescences in epoch." << std::endl;
       exit(0);
     }  
 
-    FinalizeCoalescenceCount(options);
+    FinalizeCoalescenceCount(options, result);
 
   }else if(!mode.compare("ReEstimateBranchLengths")){
  
@@ -151,18 +151,18 @@ int main(int argc, char* argv[]){
     //The Final Finalize should be a FinalizeByGroup 
    
     bool help = false;
-    if(!options.count("mutation_rate") || !options.count("coal") || !options.count("input") || !options.count("output")){
+    if(!result.count("mutation_rate") || !result.count("coal") || !result.count("input") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: mutation_rate, coal, input, output. Optional: dist, mrate, seed." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Estimate population size." << std::endl;
       exit(0);
     }  
 
-    ReEstimateBranchLengths(options);
+    ReEstimateBranchLengths(result);
 
   }else if(!mode.compare("SampleBranchLengths")){
  
@@ -171,24 +171,24 @@ int main(int argc, char* argv[]){
     //The Final Finalize should be a FinalizeByGroup 
    
     bool help = false;
-    if(!options.count("mutation_rate") || !options.count("coal") || !options.count("num_samples") || !options.count("input") || !options.count("output")){
+    if(!result.count("mutation_rate") || !result.count("coal") || !result.count("num_samples") || !result.count("input") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: mutation_rate, coal, num_samples, input, output. Optional: dist, mrate, num_proposals, seed." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Estimate population size." << std::endl;
       exit(0);
     }  
 
-    if(options.count("format") == 0){
-      SampleBranchLengths(options);
+    if(result.count("format") == 0){
+      SampleBranchLengths(result);
     }else{
-      if(options["format"].as<std::string>() == "b"){
-        SampleBranchLengthsBinary(options);
+      if(result["format"].as<std::string>() == "b"){
+        SampleBranchLengthsBinary(result);
       }else{
-        SampleBranchLengths(options);
+        SampleBranchLengths(result);
       }
     }
  
@@ -202,11 +202,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }

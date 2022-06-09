@@ -6,7 +6,7 @@
 #include "Annotate.cpp"
 
 #include "filesystem.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <string>
 
 int main(int argc, char* argv[]){
@@ -35,71 +35,71 @@ int main(int argc, char* argv[]){
 		("i,input", "Filename of input (excl file extension).", cxxopts::value<std::string>())
     ("o,output", "Filename of output (excl file extension).", cxxopts::value<std::string>());
 
-  options.parse(argc, argv);
+  auto result = options.parse(argc, argv);
 
-  std::string mode = options["mode"].as<std::string>();
+  std::string mode = result["mode"].as<std::string>();
 
   if(!mode.compare("AncToNewick")){
   
-    GetTreeOfInterest(options);
+    GetTreeOfInterest(options, result);
 
   }else if(!mode.compare("SubTreesForSubpopulation")){
   
-    CreateAncesTreeFileForSubpopulation(options);
+    CreateAncesTreeFileForSubpopulation(options, result);
 
   }else if(!mode.compare("AncMutForSubregion")){
 
     bool help = false;
-    if(!options.count("anc") || !options.count("mut") || !options.count("first_bp") || !options.count("last_bp") || !options.count("output")){
+    if(!result.count("anc") || !result.count("mut") || !result.count("first_bp") || !result.count("last_bp") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: anc, mut, first_bp, last_bp, output." << std::endl;
       help = true;
     }
 
-    GetDistFromMut(options);
-    AncMutForSubregion(options);
+    GetDistFromMut(options, result);
+    AncMutForSubregion(options, result);
 
   }else if(!mode.compare("RemoveTreesWithFewMutations")){
   
-    GetDistFromMut(options);
-    RemoveTreesWithFewMutations(options);
+    GetDistFromMut(options, result);
+    RemoveTreesWithFewMutations(options, result);
 
   }else if(!mode.compare("ExtractDistFromMut")){
  
-    GetDistFromMut(options);
+    GetDistFromMut(options, result);
 
   }else if(!mode.compare("DivideAncMut")){
   
-    DivideAncMut(options);
+    DivideAncMut(options, result);
   
   }else if(!mode.compare("CombineAncMut")){
   
-    CombineAncMut(options);
+    CombineAncMut(options, result);
 
 	}else if(!mode.compare("ConvertNewickToTimeb")){
 
-		ConvertNewickToTimeb(options);
+		ConvertNewickToTimeb(options, result);
 
 	}else if(!mode.compare("MapMutations")){
 
-		GetDistFromMut(options);
-		MapMutation(options);
+		GetDistFromMut(options, result);
+		MapMutation(options, result);
 
 	}else if(!mode.compare("GenerateSNPAnnotationsUsingTree")){
 
-		GenerateSNPAnnotationsUsingTree(options);
+		GenerateSNPAnnotationsUsingTree(options, result);
 
 	}else if(!mode.compare("UnlinkTips")){
 
-		UnlinkTips(options);
+		UnlinkTips(options, result);
 
 	}else if(!mode.compare("GetAllBranchesOfMut")){
 
-		PropagateMutations(options);
+		PropagateMutations(options, result);
 
 	}else if(!mode.compare("CountMutonBranches")){
 
-		PrintMutonBranches(options);
+		PrintMutonBranches(options, result);
 
 	}else{
 
@@ -111,11 +111,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }

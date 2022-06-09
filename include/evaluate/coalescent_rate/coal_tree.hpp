@@ -6,7 +6,7 @@
 
 #include "anc.hpp"
 #include "mutations.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 
 //input tree, compute MLE of coalescence rates for tree
 

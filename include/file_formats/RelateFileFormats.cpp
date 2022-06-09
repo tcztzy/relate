@@ -1,7 +1,7 @@
 #include "FileFormats.cpp"
 #include "ConvertToTreeSequence.cpp"
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <string>
 
 int main(int argc, char* argv[]){
@@ -24,45 +24,45 @@ int main(int argc, char* argv[]){
     ("i,input", "Filename of input.", cxxopts::value<std::string>())
     ("o,output", "Filename of output (excl file extension).", cxxopts::value<std::string>());
 
-  options.parse(argc, argv);
+  auto result = options.parse(argc, argv);
 
-  std::string mode = options["mode"].as<std::string>();
+  std::string mode = result["mode"].as<std::string>();
 
   if(!mode.compare("ConvertFromHapLegendSample")){
   
-    ConvertFromHapLegendSample(options);
+    ConvertFromHapLegendSample(options, result);
   
   }else if(!mode.compare("ConvertFromVcf")){
   
-    ConvertFromVcf(options);
+    ConvertFromVcf(options, result);
   
   }else if(!mode.compare("RemoveNonBiallelicSNPs")){
   
-    RemoveNonBiallelicSNPs(options);
+    RemoveNonBiallelicSNPs(options, result);
   
   }else if(!mode.compare("RemoveSamples")){
   
-    RemoveSamples(options);
+    RemoveSamples(options, result);
   
   }else if(!mode.compare("FilterHapsUsingMask")){
   
-    FilterHapsUsingMask(options);
+    FilterHapsUsingMask(options, result);
   
   }else if(!mode.compare("FlipHapsUsingAncestor")){
   
-    FlipHapsUsingAncestor(options);
+    FlipHapsUsingAncestor(options, result);
 
   }else if(!mode.compare("GenerateSNPAnnotations")){
   
-    GenerateSNPAnnotations(options);
+    GenerateSNPAnnotations(options, result);
  
   }else if(!mode.compare("ConvertToTreeSequenceTxt")){
   
-    ConvertToTreeSequenceTxt(options);
+    ConvertToTreeSequenceTxt(options, result);
  
   }else if(!mode.compare("ConvertToTreeSequence")){
   
-    ConvertToTreeSequence(options);
+    ConvertToTreeSequence(options, result);
  
   }else{
 
@@ -74,11 +74,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }

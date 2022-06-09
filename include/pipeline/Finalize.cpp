@@ -4,22 +4,22 @@
 #include <ctime>
 #include <string>
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include "filesystem.hpp"
 #include "collapsed_matrix.hpp"
 #include "data.hpp"
 #include "anc.hpp"
 #include "anc_builder.hpp"
 
-int Finalize(cxxopts::Options& options){
+int Finalize(cxxopts::Options& options, cxxopts::ParseResult& result){
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output. Optional: annot, sample_ages." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     std::cout << "Use at the end to finalize results. This will summarize all sections into one file." << std::endl;
     exit(0);
@@ -29,7 +29,7 @@ int Finalize(cxxopts::Options& options){
   std::cerr << "---------------------------------------------------------" << std::endl;
   std::cerr << "Finalizing..." << std::endl;
 
-  std::string file_out = options["output"].as<std::string>() + "/";
+  std::string file_out = result["output"].as<std::string>() + "/";
 
   int N, L, num_chunks;
   double tmp;
@@ -53,8 +53,8 @@ int Finalize(cxxopts::Options& options){
   fclose(fp); 
 
   std::vector<double> sample_ages(N);
-  if(options.count("sample_ages")){
-    igzstream is_ages(options["sample_ages"].as<std::string>());
+  if(result.count("sample_ages")){
+    igzstream is_ages(result["sample_ages"].as<std::string>());
     int i = 0; 
     while(is_ages >> sample_ages[i]){
       i++;
@@ -82,13 +82,13 @@ int Finalize(cxxopts::Options& options){
   FILE* fp_props = fopen((file_out + "props.bin").c_str(), "rb");
   std::ifstream is_annot;
   bool exists_annot = false;
-  if(options.count("annot")){
-    is_annot.open(options["annot"].as<std::string>());
+  if(result.count("annot")){
+    is_annot.open(result["annot"].as<std::string>());
     getline(is_annot, line2);
     exists_annot = true;
   }
 
-  os.open(options["output"].as<std::string>() + ".mut");
+  os.open(result["output"].as<std::string>() + ".mut");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -106,7 +106,7 @@ int Finalize(cxxopts::Options& options){
   //Rest
   for(int c = 0; c < num_chunks; c++){
 
-    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + options["output"].as<std::string>();
+    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + result["output"].as<std::string>();
 
     is.open(file_prefix + "_c" + std::to_string(c) + ".mut");
     std::remove((file_prefix + "_c" + std::to_string(c) + ".mut").c_str());
@@ -187,7 +187,7 @@ int Finalize(cxxopts::Options& options){
 
   //////////////////////////////////////////////////
 
-  std::string filename_os = options["output"].as<std::string>() + ".anc";
+  std::string filename_os = result["output"].as<std::string>() + ".anc";
   FILE *pfile = std::fopen(filename_os.c_str(), "w");
 
   if(pfile == NULL){
@@ -219,7 +219,7 @@ int Finalize(cxxopts::Options& options){
       end_chunk -= overlap_chunk_size;
     }
 
-    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + options["output"].as<std::string>();
+    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + result["output"].as<std::string>();
 
     int position;
     AncesTree anc;

@@ -9,14 +9,14 @@
 
 #include <string> // required for std::string
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include "filesystem.hpp"
 #include "data.hpp"
 #include "fast_painting.hpp"
 
-int Paint(cxxopts::Options& options, int chunk_index){
+int Paint(cxxopts::ParseResult& result, int chunk_index){
 
-  std::string file_out = options["output"].as<std::string>() + "/"; 
+  std::string file_out = result["output"].as<std::string>() + "/"; 
 
   int N, L, num_windows;
   std::vector<int> window_boundaries;
@@ -35,10 +35,10 @@ int Paint(cxxopts::Options& options, int chunk_index){
 	Data data((file_out + "chunk_" + std::to_string(chunk_index) + ".hap").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".bp").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".dist").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".r").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".rpos").c_str(),  (file_out + "chunk_" + std::to_string(chunk_index) + ".state").c_str()); //struct data is defined in data.hpp 
   data.name = (file_out + "chunk_" + std::to_string(chunk_index) + "/paint/relate");
 
-  if(options.count("painting")){
+  if(result.count("painting")){
 
 	  std::string val;
-		std::string painting = options["painting"].as<std::string>();
+		std::string painting = result["painting"].as<std::string>();
 		int i = 0;
 		for(;i < painting.size(); i++){
       if(painting[i] == ',') break;

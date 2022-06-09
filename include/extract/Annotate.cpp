@@ -1,20 +1,20 @@
 #include "filesystem.hpp"
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <string>
 
 void
-GenerateSNPAnnotationsUsingTree(cxxopts::Options& options){
+GenerateSNPAnnotationsUsingTree(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if( !options.count("anc") || !options.count("mut") || !options.count("poplabels") || !options.count("output") ){
+	if( !result.count("anc") || !result.count("mut") || !result.count("poplabels") || !result.count("output") ){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, poplabels, output. Optional: ancestor." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Generate additional annotation for SNPs." << std::endl;
 		exit(0);
@@ -24,15 +24,15 @@ GenerateSNPAnnotationsUsingTree(cxxopts::Options& options){
 	std::cerr << "Generating additional annotation for SNPs... " << std::endl;
 
 	bool is_ancestor = false;
-	if(options.count("ancestor")) is_ancestor = true;
+	if(result.count("ancestor")) is_ancestor = true;
 
 	fasta ancestor;
-	if(is_ancestor) ancestor.Read(options["ancestor"].as<std::string>());
+	if(is_ancestor) ancestor.Read(result["ancestor"].as<std::string>());
 
 	Sample sample;
-	sample.Read(options["poplabels"].as<std::string>());
+	sample.Read(result["poplabels"].as<std::string>());
 
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	MarginalTree mtr;
 	Muts::iterator it_mut; //iterator for mut file
 	float num_bases_SNP_persists = 0.0;
@@ -45,9 +45,9 @@ GenerateSNPAnnotationsUsingTree(cxxopts::Options& options){
 
 	Mutations mut;
 	bool is_mut = false;
-	if(options.count("mut")){
+	if(result.count("mut")){
 		is_mut = true;
-		mut.Read(options["mut"].as<std::string>());
+		mut.Read(result["mut"].as<std::string>());
 	}
 
 	char nucl;
@@ -125,8 +125,8 @@ GenerateSNPAnnotationsUsingTree(cxxopts::Options& options){
 	for(std::vector<std::string>::iterator it_groups = sample.groups.begin(); it_groups != sample.groups.end(); it_groups++){
 		mut.header += *it_groups + ";";
 	}
-	mut.Dump(options["output"].as<std::string>() + ".mut");
-	std::cerr << "Output written to " << options["output"].as<std::string>() + ".mut" << std::endl;
+	mut.Dump(result["output"].as<std::string>() + ".mut");
+	std::cerr << "Output written to " << result["output"].as<std::string>() + ".mut" << std::endl;
 
 	/////////////////////////////////////////////
 	//Resource Usage
@@ -146,31 +146,31 @@ GenerateSNPAnnotationsUsingTree(cxxopts::Options& options){
 
 
 void
-PropagateMutations(cxxopts::Options& options){
+PropagateMutations(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Example code for converting from tree sequence file format." << std::endl;
 		exit(0);
 	}  
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
-	std::cerr << "Propagate mutations " << options["anc"].as<std::string>() << " and " << options["mut"].as<std::string>() << "..." << std::endl;
+	std::cerr << "Propagate mutations " << result["anc"].as<std::string>() << " and " << result["mut"].as<std::string>() << "..." << std::endl;
 
 	//Read anc/mut 
 	AncesTree anc;
-	anc.Read(options["anc"].as<std::string>());
+	anc.Read(result["anc"].as<std::string>());
 	Mutations mut;
-	mut.Read(options["mut"].as<std::string>());
+	mut.Read(result["mut"].as<std::string>());
 
 
 	CorrTrees::iterator it_seq_prev;
@@ -303,7 +303,7 @@ PropagateMutations(cxxopts::Options& options){
 	assert(rit_equivalent_branches == equivalent_branches.rend());
 
 
-	std::ofstream os(options["output"].as<std::string>() + ".allmuts");
+	std::ofstream os(result["output"].as<std::string>() + ".allmuts");
 	os << "treeID branchID SNPID\n";
 	int tree = 0;
 	for(std::vector<std::vector<std::vector<int>>>::iterator it_muts = tree_mutations.begin(); it_muts != tree_mutations.end(); it_muts++){
@@ -336,27 +336,27 @@ PropagateMutations(cxxopts::Options& options){
 
 
 void
-PrintMutonBranches(cxxopts::Options& options){
+PrintMutonBranches(cxxopts::Options& options, cxxopts::ParseResult& result){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
+	if(result.count("help") || help){
 		std::cout << options.help({""}) << std::endl;
 		std::cout << "Example code for converting from tree sequence file format." << std::endl;
 		exit(0);
 	}  
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
-	std::cerr << "Output num mutations mapping to each branch " << options["anc"].as<std::string>() << " and " << options["mut"].as<std::string>() << "..." << std::endl;
+	std::cerr << "Output num mutations mapping to each branch " << result["anc"].as<std::string>() << " and " << result["mut"].as<std::string>() << "..." << std::endl;
 
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	int num_trees = ancmut.NumTrees();
 	int L = ancmut.NumSnps();
@@ -367,10 +367,10 @@ PrintMutonBranches(cxxopts::Options& options){
 	Data data(N,L);
 	data.dist.resize(L);
 	std::string line;
-	if(options.count("dist")){
-		igzstream is_dist(options["dist"].as<std::string>());
+	if(result.count("dist")){
+		igzstream is_dist(result["dist"].as<std::string>());
 		if(is_dist.fail()){
-			std::cerr << "Error while opening " << options["dist"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening " << result["dist"].as<std::string>() << std::endl;
 			exit(1);
 		}
 		getline(is_dist, line); 
@@ -388,7 +388,7 @@ PrintMutonBranches(cxxopts::Options& options){
 		}
 	}
 
-	std::ofstream os(options["output"].as<std::string>() + ".allmuts");
+	std::ofstream os(result["output"].as<std::string>() + ".allmuts");
   os << "treeID branchID pos_start pos_end dist branch_length num_muts\n";
 
 	int count_trees = 0;

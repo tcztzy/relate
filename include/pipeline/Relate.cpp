@@ -8,7 +8,7 @@
 #include "Clean.cpp"
 #include "OptimizeParameters.cpp"
 
-#include "cxxopts.hpp"
+#include <cxxopts.hpp>
 #include <string>
 
 int main(int argc, char* argv[]){
@@ -40,11 +40,11 @@ int main(int argc, char* argv[]){
 		("painting", "Optional. Copying and transition parameters in chromosome painting algorithm. Format: theta,rho. Default: 0.025,1.", cxxopts::value<std::string>())
     ("seed", "Optional. Seed for MCMC in branch lengths estimation.", cxxopts::value<int>());
 
-  options.parse(argc, argv);
+  auto result = options.parse(argc, argv);
 
-  std::string mode = options["mode"].as<std::string>();
-  if(options.count("output")){
-    std::string output = options["output"].as<std::string>();
+  std::string mode = result["mode"].as<std::string>();
+  if(result.count("output")){
+    std::string output = result["output"].as<std::string>();
     for(std::string::iterator it_str = output.begin(); it_str != output.end(); it_str++){
       if(*it_str == '/'){
         std::cerr << "Output needs to be in working directory." << std::endl;
@@ -55,49 +55,49 @@ int main(int argc, char* argv[]){
 
   if(!mode.compare("MakeChunks")){
   
-    MakeChunks(options);
+    MakeChunks(options, result);
   
   }else if(!mode.compare("Paint")){
   
     bool help = false;
-    if(!options.count("chunk_index") || !options.count("output")){
+    if(!result.count("chunk_index") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: chunk_index, output." << std::endl; 
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Use after MakeChunks to paint all haps against all." << std::endl;
       exit(0);
     }
 
 
-    Paint(options, options["chunk_index"].as<int>());
+    Paint(result, result["chunk_index"].as<int>());
   
   }else if(!mode.compare("BuildTopology")){
   
     bool help = false;
-    if(!options.count("chunk_index") || !options.count("output")){
+    if(!result.count("chunk_index") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       //std::cout << "Needed: chunk_index, output. Optional: first_section, last_section, anc_allele_unknown, seed." << std::endl;
       std::cout << "Needed: chunk_index, output. Optional: first_section, last_section, seed." << std::endl; 
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Use after Paint to build tree topologies in a small chunk specified by first section - last_section." << std::endl;
       exit(0);
     }
-    if(options.count("first_section") && options.count("last_section")){
+    if(result.count("first_section") && result.count("last_section")){
     
-      int first_section = options["first_section"].as<int>();
-      int last_section  = options["last_section"].as<int>();
-      BuildTopology(options, options["chunk_index"].as<int>(), first_section, last_section);
+      int first_section = result["first_section"].as<int>();
+      int last_section  = result["last_section"].as<int>();
+      BuildTopology(result, result["chunk_index"].as<int>(), first_section, last_section);
 
     }else{
     
       int N, L, num_sections;
-      FILE* fp = fopen(("parameters_c" + std::to_string(options["chunk_index"].as<int>()) + ".bin").c_str(), "r");
+      FILE* fp = fopen(("parameters_c" + std::to_string(result["chunk_index"].as<int>()) + ".bin").c_str(), "r");
       assert(fp != NULL);
       fread(&N, sizeof(int), 1, fp);
       fread(&L, sizeof(int), 1, fp);
@@ -106,14 +106,14 @@ int main(int argc, char* argv[]){
       Data data(N,L);
       num_sections--;
 
-      BuildTopology(options, options["chunk_index"].as<int>(), 0, num_sections-1);
+      BuildTopology(result, result["chunk_index"].as<int>(), 0, num_sections-1);
 
     }
   
   }else if(!mode.compare("FindEquivalentBranches")){
  
-    if(options.count("chunk_index") || options.count("output")){
-      FindEquivalentBranches(options, options["chunk_index"].as<int>());
+    if(result.count("chunk_index") || result.count("output")){
+      FindEquivalentBranches(options, result, result["chunk_index"].as<int>());
     }else{
       std::cerr << "Please specify the chunk_index, and output" << std::endl;
       exit(1);
@@ -122,27 +122,27 @@ int main(int argc, char* argv[]){
   }else if(!mode.compare("InferBranchLengths")){
   
     bool help = false;
-    if(!options.count("chunk_index")){
+    if(!result.count("chunk_index")){
       std::cout << "Not enough arguments supplied." << std::endl;
       std::cout << "Needed: effectiveN, mutation_rate, chunk_index, output. Optional: first_section, last_section, sample_ages." << std::endl; 
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Use after PropagateMutations to infer branch lengths." << std::endl;
       exit(0);
     }
 
-    if(options.count("first_section") && options.count("last_section")){
+    if(result.count("first_section") && result.count("last_section")){
     
-      int first_section = options["first_section"].as<int>();
-      int last_section  = options["last_section"].as<int>();
-      GetBranchLengths(options, options["chunk_index"].as<int>(), first_section, last_section);
+      int first_section = result["first_section"].as<int>();
+      int last_section  = result["last_section"].as<int>();
+      GetBranchLengths(options, result, result["chunk_index"].as<int>(), first_section, last_section);
 
     }else{
     
       int N, L, num_sections;
-      FILE* fp = fopen((options["output"].as<std::string>() + "/parameters_c" + std::to_string(options["chunk_index"].as<int>()) + ".bin").c_str(), "r");
+      FILE* fp = fopen((result["output"].as<std::string>() + "/parameters_c" + std::to_string(result["chunk_index"].as<int>()) + ".bin").c_str(), "r");
       assert(fp != NULL);
       fread(&N, sizeof(int), 1, fp);
       fread(&L, sizeof(int), 1, fp);
@@ -151,13 +151,13 @@ int main(int argc, char* argv[]){
       Data data(N,L);
       num_sections--;
 
-      GetBranchLengths(options, options["chunk_index"].as<int>(), 0, num_sections-1);
+      GetBranchLengths(options, result, result["chunk_index"].as<int>(), 0, num_sections-1);
     }
 
   }else if(!mode.compare("CombineSections")){
 
-    if(options.count("chunk_index")){
-      CombineSections(options, options["chunk_index"].as<int>());
+    if(result.count("chunk_index")){
+      CombineSections(options, result, result["chunk_index"].as<int>());
     }else{
       std::cerr << "Please specify the chunk_index" << std::endl;
       exit(1);
@@ -165,24 +165,24 @@ int main(int argc, char* argv[]){
 
   }else if(!mode.compare("Finalize")){
   
-    Finalize(options);
+    Finalize(options, result);
   
   }else if(!mode.compare("Clean")){
   
-    Clean(options);
+    Clean(options, result);
   
   }else if(!mode.compare("All")){
     
     bool popsize = false;
-    if(!options.count("effectiveN") && !options.count("coal")) popsize = true;
+    if(!result.count("effectiveN") && !result.count("coal")) popsize = true;
     bool help = false;
-    if(!options.count("haps") || !options.count("sample") ||  !options.count("map") || popsize || !options.count("mutation_rate") || !options.count("output")){
+    if(!result.count("haps") || !result.count("sample") ||  !result.count("map") || popsize || !result.count("mutation_rate") || !result.count("output")){
       std::cout << "Not enough arguments supplied." << std::endl;
       //std::cout << "Needed: haps, sample, map, mutation_rate, effectiveN, output. Optional: seed, annot, dist, coal, max_memory, sample_ages, chunk_index, anc_allele_unknown." << std::endl;
       std::cout << "Needed: haps, sample, map, mutation_rate, effectiveN, output. Optional: seed, annot, dist, coal, max_memory, sample_ages, chunk_index." << std::endl;
       help = true;
     }
-    if(options.count("help") || help){
+    if(result.count("help") || help){
       std::cout << options.help({""}) << std::endl;
       std::cout << "Executes all stages of the algorithm." << std::endl;
       exit(0);
@@ -199,36 +199,36 @@ int main(int argc, char* argv[]){
     int N, L;
     double memory_size;
     int start_chunk, end_chunk;
-    std::string file_out = options["output"].as<std::string>() + "/";
+    std::string file_out = result["output"].as<std::string>() + "/";
 
-    if(options.count("chunk_index")){
+    if(result.count("chunk_index")){
 
-      std::cerr << "  chunk " << options["chunk_index"].as<int>() << std::endl;
+      std::cerr << "  chunk " << result["chunk_index"].as<int>() << std::endl;
 
-      FILE* fp = fopen((file_out + "parameters_c" + std::to_string(options["chunk_index"].as<int>()) + ".bin").c_str(), "r");
+      FILE* fp = fopen((file_out + "parameters_c" + std::to_string(result["chunk_index"].as<int>()) + ".bin").c_str(), "r");
       assert(fp != NULL);
       fread(&N, sizeof(int), 1, fp);
       fread(&L, sizeof(int), 1, fp);
       fclose(fp);
 
-      start_chunk = options["chunk_index"].as<int>();
+      start_chunk = result["chunk_index"].as<int>();
       end_chunk   = start_chunk;
     }else{
 
       std::cerr << "---------------------------------------------------------" << std::endl;
       std::cerr << "Using:" << std::endl;
-      std::cerr << "  " << options["haps"].as<std::string>() << std::endl;    
-      std::cerr << "  " << options["sample"].as<std::string>() << std::endl;
-      std::cerr << "  " << options["map"].as<std::string>() << std::endl;
-      if(!options.count("coal")){
-        std::cerr << "with mu = " << options["mutation_rate"].as<float>() << " and 2Ne = " << options["effectiveN"].as<float>() << "." << std::endl;
+      std::cerr << "  " << result["haps"].as<std::string>() << std::endl;    
+      std::cerr << "  " << result["sample"].as<std::string>() << std::endl;
+      std::cerr << "  " << result["map"].as<std::string>() << std::endl;
+      if(!result.count("coal")){
+        std::cerr << "with mu = " << result["mutation_rate"].as<float>() << " and 2Ne = " << result["effectiveN"].as<float>() << "." << std::endl;
       }else{
-        std::cerr << "with mu = " << options["mutation_rate"].as<float>() << " and coal = " << options["coal"].as<std::string>() << "." << std::endl;
+        std::cerr << "with mu = " << result["mutation_rate"].as<float>() << " and coal = " << result["coal"].as<std::string>() << "." << std::endl;
       }
       
       std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
 
-      MakeChunks(options);
+      MakeChunks(options, result);
 
       FILE* fp = fopen((file_out + "parameters.bin").c_str(), "r");
       assert(fp != NULL);
@@ -266,16 +266,16 @@ int main(int argc, char* argv[]){
       fclose(fp);
       num_sections--;
 
-      Paint(options,c);
-      BuildTopology(options, c, 0, num_sections-1);
-      FindEquivalentBranches(options, c);
-      GetBranchLengths(options, c, 0, num_sections-1);
-      CombineSections(options, c);
+      Paint(result,c);
+      BuildTopology(result, c, 0, num_sections-1);
+      FindEquivalentBranches(options, result, c);
+      GetBranchLengths(options, result, c, 0, num_sections-1);
+      CombineSections(options, result, c);
 
     }
 
-    if(!options.count("chunk_index")){
-      Finalize(options);
+    if(!result.count("chunk_index")){
+      Finalize(options, result);
     }
 
     std::cerr << "---------------------------------------------------------" << std::endl;
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]){
 
   }else if(!mode.compare("OptimizeParameters")){
 
-    OptimizeParameters(options);
+    OptimizeParameters(options, result);
 
 	}else{
 
@@ -297,11 +297,11 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
+  if(result.count("help") || help){
     std::cout << options.help({""}) << std::endl;
     exit(0);
   }
