@@ -1,5 +1,7 @@
 [requires]
 catch2/3.0.1
+cxxopts/3.0.0
+zlib/1.2.12
 
 [generators]
 cmake_find_package
