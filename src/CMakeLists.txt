@@ -1,6 +1,20 @@
 project (relate)
 
-add_library(relateStatic STATIC cxxopts filesystem plot fast_log collapsed_matrix data sample fast_painting anc mutations tree_builder branch_length_estimator anc_builder tree_comparer)
+set(RELATE_SOURCES
+  filesystem.cpp
+  plot.cpp
+  data.cpp
+  sample.cpp
+  fast_painting.cpp
+  anc.cpp
+  mutations.cpp
+  tree_builder.cpp
+  branch_length_estimator.cpp
+  anc_builder.cpp
+  tree_comparer.cpp
+)
+
+add_library(relateStatic STATIC ${RELATE_SOURCES})
 target_link_libraries(relateStatic gzstreamStatic)
-add_library(relateShared SHARED cxxopts filesystem plot fast_log collapsed_matrix data sample fast_painting anc mutations tree_builder branch_length_estimator anc_builder tree_comparer)
+add_library(relateShared SHARED ${RELATE_SOURCES})
 target_link_libraries(relateShared gzstreamShared)
