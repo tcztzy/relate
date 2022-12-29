@@ -1,5 +1,6 @@
 #include "filesystem.hpp"
 #include "cxxopts.hpp"
+#include "usage.hpp"
 #include <string>
 
 void
@@ -128,20 +129,7 @@ GenerateSNPAnnotationsUsingTree(cxxopts::Options& options){
 	mut.Dump(options["output"].as<std::string>() + ".mut");
 	std::cerr << "Output written to " << options["output"].as<std::string>() + ".mut" << std::endl;
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+	RESOURCE_USAGE
 }
 
 
@@ -318,20 +306,7 @@ PropagateMutations(cxxopts::Options& options){
 	}
 	os.close();
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+	RESOURCE_USAGE
 }
 
 
@@ -441,27 +416,7 @@ PrintMutonBranches(cxxopts::Options& options){
 	}
 	os.close();
 
-
-
-
-
-
-
-
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+	RESOURCE_USAGE
 }
 
 

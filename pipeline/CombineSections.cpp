@@ -9,6 +9,7 @@
 #include "data.hpp"
 #include "anc.hpp"
 #include "mutations.hpp"
+#include "usage.hpp"
 
 #include <sys/types.h> // required for stat.h
 #include <sys/stat.h> // no clue why required -- man pages say so
@@ -97,19 +98,7 @@ int CombineSections(cxxopts::Options& options, int chunk_index = 0){
 	std::remove((file_out + "chunk_" + std::to_string(chunk_index) + ".dist").c_str());
   std::remove((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str());
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+  RESOURCE_USAGE
 
   return 0;
 }

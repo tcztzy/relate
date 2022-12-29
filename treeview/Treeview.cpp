@@ -7,6 +7,7 @@
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
 #include "cxxopts.hpp"
+#include "usage.hpp"
 #include <ctime>
 
 
@@ -168,19 +169,7 @@ TreeView(cxxopts::Options& options){
 
 	}
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+	RESOURCE_USAGE
 
 }
 
@@ -379,19 +368,7 @@ TreeViewSample(cxxopts::Options& options){
 
 	}
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+	RESOURCE_USAGE
 
 }
 */
@@ -625,19 +602,7 @@ TreeViewSample(cxxopts::Options& options){
 		count_trees++;
 	}
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+	RESOURCE_USAGE
 
 }
 
@@ -876,19 +841,7 @@ MutationsOnBranches(cxxopts::Options& options){
 
 	}
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+	RESOURCE_USAGE
 
 }
 
@@ -981,19 +934,7 @@ BranchesBelowMutation(cxxopts::Options& options){
 
 	}
 
-	/////////////////////////////////////////////
-	//Resource Usage
-
-	rusage usage;
-	getrusage(RUSAGE_SELF, &usage);
-
-	std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-	std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+	RESOURCE_USAGE
 
 }
 

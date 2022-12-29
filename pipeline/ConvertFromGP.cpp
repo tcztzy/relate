@@ -8,6 +8,7 @@
 
 #include "cxxopts.hpp"
 #include "data.hpp"
+#include "usage.hpp"
 
 int main(int argc, char* argv[]){
 
@@ -48,19 +49,7 @@ int main(int argc, char* argv[]){
   data.ReadGP(options["haps"].as<std::string>(),options["legend"].as<std::string>(),options["map"].as<std::string>(),options["ancestral_state"].as<std::string>(), options["mask"].as<std::string>(), options["excluded_samples"].as<std::string>());
   data.PrepareMutationsFile(options["fasta"].as<std::string>(), options["samples"].as<std::string>(), options["excluded_samples"].as<std::string>());
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+  RESOURCE_USAGE
 
   return 0;
 }

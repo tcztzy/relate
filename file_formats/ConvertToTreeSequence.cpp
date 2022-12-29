@@ -16,6 +16,7 @@
 #include "mutations.hpp"
 #include "cxxopts.hpp"
 #include "tskit.h"
+#include "usage.hpp"
 
 #define check_tsk_error(val) if (val < 0) {\
   errx(EXIT_FAILURE, "line %d: %s", __LINE__, tsk_strerror(val));\
@@ -202,19 +203,7 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
   os_node_table.close();
   os_edge_table.close();
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+  RESOURCE_USAGE
 
 }
 
@@ -471,19 +460,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
   check_tsk_error(iter);
   */
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+  RESOURCE_USAGE
 
 }
 

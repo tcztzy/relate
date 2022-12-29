@@ -13,6 +13,7 @@
 #include "sample.hpp"
 #include "mutations.hpp"
 #include "cxxopts.hpp"
+#include "usage.hpp"
 
 void
 ConvertFromHapLegendSample(cxxopts::Options& options){
@@ -197,21 +198,7 @@ ConvertFromHapLegendSample(cxxopts::Options& options){
   std::cerr << "Removed " << snp - snp_accepted << " non-biallelic SNPs." << std::endl;
   std::cerr << "Output written to " << options["haps"].as<std::string>() << " and " << options["sample"].as<std::string>() << "." << std::endl;
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
-
+  RESOURCE_USAGE
 }
 
 void
@@ -452,20 +439,7 @@ ConvertFromVcf(cxxopts::Options& options){
 
   std::cerr << "Output written to " << options["haps"].as<std::string>() << " and " << options["sample"].as<std::string>() << "." << std::endl;
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+  RESOURCE_USAGE
 }
 
 void
@@ -545,21 +519,7 @@ RemoveNonBiallelicSNPs(cxxopts::Options& options){
   std::cerr << "Removed " << snp - snp_accepted << " non-biallelic SNPs." << std::endl;
   std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps" << "." << std::endl;
 
-
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+  RESOURCE_USAGE
 }
 
 void
@@ -719,21 +679,7 @@ RemoveSamples(cxxopts::Options& options){
   std::cerr << "Removed " << data.L - L_new << " SNPs." << std::endl;
   std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps" << " and " << options["output"].as<std::string>() + ".sample" << std::endl;
 
-
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+  RESOURCE_USAGE
 }
 
 void
@@ -872,21 +818,7 @@ FilterHapsUsingMask(cxxopts::Options& options){
   std::cerr << "Removed " << data.L - passing_snp << " SNPs." << std::endl;
   std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps" << " and " << options["output"].as<std::string>() + ".dist" << std::endl;
 
-
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+  RESOURCE_USAGE
 }
 
 void
@@ -1041,20 +973,7 @@ FlipHapsUsingAncestor(cxxopts::Options& options){
   std::cerr << "Number of flipped SNPs is " << number_flipped << "." << std::endl;
   std::cerr << "Output written to " << options["output"].as<std::string>() + ".haps." << std::endl;
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
-
+  RESOURCE_USAGE
 }
 
 void
@@ -1191,19 +1110,7 @@ GenerateSNPAnnotations(cxxopts::Options& options){
     std::cerr << "Output written to " << options["output"].as<std::string>() + ".annot" << std::endl;
   }
 
-  /////////////////////////////////////////////
-  //Resource Usage
-
-  rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-
-  std::cerr << "CPU Time spent: " << usage.ru_utime.tv_sec << "." << std::setfill('0') << std::setw(6);
-#ifdef __APPLE__
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000000.0 << "Mb." << std::endl;
-#else
-  std::cerr << usage.ru_utime.tv_usec << "s; Max Memory usage: " << usage.ru_maxrss/1000.0 << "Mb." << std::endl;
-#endif
-  std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
+  RESOURCE_USAGE
 
 }
 
