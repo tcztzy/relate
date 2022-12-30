@@ -1,3 +1,5 @@
+#include <gzstream.h>
+
 #include "data.hpp"
 
 

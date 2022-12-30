@@ -6,6 +6,13 @@ Relate = executable('Relate', 'pipeline/Relate.cpp',
   install : true,
   dependencies : [relate],
 )
+
+executable('RelateExtract', 'extract/RelateExtract.cpp', install : true, dependencies: relate)
+executable('RelateCoalescentRate', 'evaluate/coalescent_rate/RelateCoalescentRate.cpp', 'evaluate/coalescent_rate/coal_tree.cpp', install : true, dependencies: relate)
+executable('RelateSelection', 'evaluate/selection/RelateSelection.cpp', install : true, dependencies: relate)
+executable('RelateMutationRate', 'evaluate/mutation_rate/RelateMutationRate.cpp', install : true, dependencies: relate)
+executable('RelateTreeView', 'treeview/RelateTreeView.cpp', install : true, dependencies: relate)
+
 tskit_proj = subproject('tskit')
 tskit_dep = tskit_proj.get_variable('tskit_dep')
 RelateFileFormat = executable('RelateFileFormat', 'file_formats/RelateFileFormats.cpp',

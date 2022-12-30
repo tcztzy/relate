@@ -9,7 +9,6 @@
 #include <bitset>
 #include <err.h>
 #include <tskit.h>
-#include <gzstream.h>
 
 #include "collapsed_matrix.hpp"
 #include "data.hpp"

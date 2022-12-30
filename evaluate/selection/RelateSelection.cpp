@@ -5,7 +5,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#include "gzstream.hpp"
 #include "collapsed_matrix.hpp"
 #include "anc.hpp"
 #include "anc_builder.hpp"

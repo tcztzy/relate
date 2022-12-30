@@ -1,3 +1,0 @@
-add_executable(RelateTreeView RelateTreeView.cpp)
-target_link_libraries(RelateTreeView relateStatic)
-

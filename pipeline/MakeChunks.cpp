@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <gzstream.h>
 
 #include "filesystem.hpp"
 #include "cxxopts.hpp"

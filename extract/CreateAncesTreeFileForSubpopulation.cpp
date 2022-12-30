@@ -6,9 +6,9 @@
 #include <algorithm>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <gzstream.h>
 
 #include "filesystem.hpp"
-#include "gzstream.hpp"
 #include "collapsed_matrix.hpp"
 #include "anc.hpp"
 #include "cxxopts.hpp"

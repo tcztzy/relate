@@ -1,3 +1,0 @@
-add_executable(RelateExtract RelateExtract.cpp)
-target_link_libraries(RelateExtract relateStatic)
-

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <gzstream.h>
 
-#include "gzstream.hpp"
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"

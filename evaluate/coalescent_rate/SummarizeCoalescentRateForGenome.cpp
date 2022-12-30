@@ -1,7 +1,7 @@
 #include <iostream>
+#include <gzstream.h>
 #include "collapsed_matrix.hpp"
 #include "cxxopts.hpp"
-#include "gzstream.hpp"
 #include "usage.hpp"
 
 #include <ctime>
