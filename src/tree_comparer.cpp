@@ -207,7 +207,6 @@ TimeWhileKAncestorsDistance(Tree& tr1, Tree& tr2){
   std::sort(coordinates_tr2.begin(), coordinates_tr2.end());
 
   float distance = 0.0;
-  float tmp_distance;
   float num_lineages;
   for(int i = N; i < tr1.nodes.size(); i++){
     num_lineages = 2*N-i;
