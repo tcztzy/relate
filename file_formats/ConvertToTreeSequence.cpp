@@ -8,6 +8,7 @@
 #include <sys/resource.h>
 #include <bitset>
 #include <err.h>
+#include <tskit.h>
 
 #include "gzstream.hpp"
 #include "collapsed_matrix.hpp"
@@ -15,7 +16,6 @@
 #include "sample.hpp"
 #include "mutations.hpp"
 #include "cxxopts.hpp"
-#include "tskit.h"
 #include "usage.hpp"
 
 #define check_tsk_error(val) if (val < 0) {\
@@ -261,7 +261,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
 
 	tables.sequence_length = (*std::prev(ancmut.mut_end(),1)).pos + 1;
 	for(int i = 0; i < N; i++){
-		tsk_individual_table_add_row(&tables.individuals, 0, NULL, 0 , NULL, 0);
+		tsk_individual_table_add_row(&tables.individuals, 0, NULL, 0 , NULL, 0, NULL, 0);
 	}
 
 
@@ -379,11 +379,11 @@ ConvertToTreeSequence(cxxopts::Options& options){
 				node = *(*it_mut).branch.begin();
 				if(node < N){
 					derived_allele[0] = (*it_mut).mutation_type[2];
-					ret = tsk_mutation_table_add_row(&tables.mutations, l, node, TSK_NULL, derived_allele, 1, NULL, 0);
+					ret = tsk_mutation_table_add_row(&tables.mutations, l, node, TSK_NULL, TSK_UNKNOWN_TIME, derived_allele, 1, NULL, 0);
 					check_tsk_error(ret);
 				}else{
 					derived_allele[0] = (*it_mut).mutation_type[2];
-					ret = tsk_mutation_table_add_row(&tables.mutations, l, node + node_const, TSK_NULL, derived_allele, 1, NULL, 0);
+					ret = tsk_mutation_table_add_row(&tables.mutations, l, node + node_const, TSK_NULL, TSK_UNKNOWN_TIME, derived_allele, 1, NULL, 0);
 					check_tsk_error(ret);
 				}
 				site_count++;
@@ -419,7 +419,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
 		for(it_node = mtr.tree.nodes.begin(); it_node != std::prev(mtr.tree.nodes.end(),1); it_node++){
 			node = (*it_node).label;
 			if(node >= data.N) node += node_const;
-			ret = tsk_edge_table_add_row(&tables.edges, pos, pos_end, (*(*it_node).parent).label + node_const, node);    
+			ret = tsk_edge_table_add_row(&tables.edges, pos, pos_end, (*(*it_node).parent).label + node_const, node, NULL, 0);    
 			check_tsk_error(ret);
 			edge_count++;
 		}
