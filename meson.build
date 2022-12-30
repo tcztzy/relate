@@ -12,5 +12,7 @@ RelateFileFormat = executable('RelateFileFormat', 'file_formats/RelateFileFormat
   install : true,
   dependencies : [relate, tskit_dep],
 )
-Test = executable('Test', 'test/Tests.cpp', 'test/catch_amalgamated.cpp', dependencies : relate)
+catch2_proj = subproject('catch2')
+catch2_with_main_dep = catch2_proj.get_variable('catch2_with_main_dep')
+Test = executable('Test', 'test/Tests.cpp', dependencies : [relate, catch2_with_main_dep])
 test('Run tests', Test)
