@@ -1,4 +1,5 @@
-subdir('gzstream')
+gzstream_proj = subproject('gzstream')
+gzstream_dep = gzstream_proj.get_variable('gzstream_dep')
 relate = declare_dependency(
   sources : [
     'fast_painting.cpp',
@@ -13,5 +14,5 @@ relate = declare_dependency(
     'sample.cpp',
     'tree_comparer.cpp',
   ],
-  dependencies : gzstream,
+  dependencies : gzstream_dep,
   include_directories : include_directories('.'))

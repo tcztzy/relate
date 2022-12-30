@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <gzstream.h>
 
-#include "gzstream.hpp"
 #include "collapsed_matrix.hpp"
 #include "data.hpp"
 #include "sample.hpp"

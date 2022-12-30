@@ -2,7 +2,7 @@
 #define DATA_HPP
 
 #include "collapsed_matrix.hpp"
-#include "gzstream.hpp"
+#include <gzstream.h>
 
 #include <iostream>
 #include <iomanip>

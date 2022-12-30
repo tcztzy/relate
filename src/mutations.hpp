@@ -1,7 +1,7 @@
 #ifndef MUTATIONS_HPP
 #define MUTATIONS_HPP
 
-#include "gzstream.hpp"
+#include <gzstream.h>
 #include "data.hpp"
 #include "anc.hpp"
 

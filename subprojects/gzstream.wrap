@@ -1,0 +1,7 @@
+[wrap-file]
+directory = gzstream
+source_url = http://www.cs.unc.edu/Research/compgeom/gzstream/gzstream.tgz
+source_filename = gzstream.tgz
+source_hash = 99acb23903dd0e41ee86c29f65b9f36a8f43af29325dd233fb45362df14dc103
+patch_directory = gzstream
+diff_files = gzstream/0001.patch, gzstream/0002.patch
