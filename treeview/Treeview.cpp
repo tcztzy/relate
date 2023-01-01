@@ -1,14 +1,14 @@
 #include <iostream>
+#include <ctime>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <cxxopts.hpp>
 #include <gzstream.h>
 
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "tree_comparer.hpp"
-#include "cxxopts.hpp"
 #include "usage.hpp"
-#include <ctime>
 
 
 void TraverseTree(Node& node, Tree& tree, double& x_coordinate, std::vector<float>& coordinates, std::vector<Leaves>& leaves, std::ofstream& os, int& counter){
@@ -106,24 +106,24 @@ void ExtractPlotCoordinates(Tree& tree, std::ofstream& os){
 }
 
 void
-TreeView(cxxopts::Options& options){
+TreeView(cxxopts::ParseResult& result, const std::string& help_text){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("snp_of_interest") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("snp_of_interest") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, snp_of_interest, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
-		std::cout << options.help({""}) << std::endl;
+	if(result.count("help") || help){
+		std::cout << help_text << std::endl;
 		std::cout << "Outputs tree of interest as .newick file." << std::endl;
 		exit(0);
 	}  
 
-	int snp_of_interest = options["snp_of_interest"].as<int>();
+	int snp_of_interest = result["snp_of_interest"].as<int>();
 	int index_of_snp_of_interest;
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
@@ -131,7 +131,7 @@ TreeView(cxxopts::Options& options){
 
 	//////////////////////////////////
 	//Parse Data
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	MarginalTree mtr;
 	Muts::iterator it_mut;
@@ -142,7 +142,7 @@ TreeView(cxxopts::Options& options){
 	//////////////////////////////////////////// Read Tree ///////////////////////////////////
 
 	Mutations mut;
-	mut.Read(options["mut"].as<std::string>());
+	mut.Read(result["mut"].as<std::string>());
 	index_of_snp_of_interest = 0;
 	for(std::vector<SNPInfo>::iterator it_mut = mut.info.begin(); it_mut != mut.info.end(); it_mut++){
 		if((*it_mut).pos >= snp_of_interest) break;
@@ -158,7 +158,7 @@ TreeView(cxxopts::Options& options){
 
 		if(count_trees == tree_index_of_interest){
 			//output plot coordinates
-			std::ofstream os(options["output"].as<std::string>() + ".plotcoords");
+			std::ofstream os(result["output"].as<std::string>() + ".plotcoords");
 			ExtractPlotCoordinates(mtr.tree, os);
 			os.close();
 
@@ -169,7 +169,7 @@ TreeView(cxxopts::Options& options){
 
 	}
 
-	RESOURCE_USAGE
+	ResourceUsage();
 
 }
 
@@ -368,31 +368,31 @@ TreeViewSample(cxxopts::Options& options){
 
 	}
 
-	RESOURCE_USAGE
+	ResourceUsage();
 
 }
 */
 
 
 void
-TreeViewSample(cxxopts::Options& options){
+TreeViewSample(cxxopts::ParseResult& result, const std::string& help_text){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("snp_of_interest") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("snp_of_interest") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, snp_of_interest, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
-		std::cout << options.help({""}) << std::endl;
+	if(result.count("help") || help){
+		std::cout << help_text << std::endl;
 		std::cout << "Outputs tree of interest as .newick file." << std::endl;
 		exit(0);
 	}  
 
-	int snp_of_interest = options["snp_of_interest"].as<int>();
+	int snp_of_interest = result["snp_of_interest"].as<int>();
 	int index_of_snp_of_interest;
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
@@ -405,7 +405,7 @@ TreeViewSample(cxxopts::Options& options){
 	MarginalTree mtr;
 	Muts::iterator it_mut;
 
-	std::string filename_anc = options["anc"].as<std::string>();
+	std::string filename_anc = result["anc"].as<std::string>();
 	igzstream is(filename_anc);
 	if(is.fail()) is.open(filename_anc + ".gz");
 	if(is.fail()){
@@ -453,7 +453,7 @@ TreeViewSample(cxxopts::Options& options){
 	//////////////////////////////////////////// Read Tree ///////////////////////////////////
 
 	Mutations mut;
-	mut.Read(options["mut"].as<std::string>());
+	mut.Read(result["mut"].as<std::string>());
 	if(mut.info.size() == 0){
     std::cerr << "Error: anc/mut needs to span at least one mutation" << std::endl;
 		exit(1); 
@@ -575,17 +575,17 @@ TreeViewSample(cxxopts::Options& options){
 		  AncesTree anc;
 			anc.sample_ages = sample_ages;
 			anc.seq.push_back(mtr);
-			anc.Dump(options["output"].as<std::string>() + ".anc");
+			anc.Dump(result["output"].as<std::string>() + ".anc");
 
 			Mutations mut_avg;
 			mut_avg.info.resize(1);
 			mut_avg.info[0] = mut.info[index_of_snp_of_interest];
 			mut_avg.info[0].tree = 0;
-			mut_avg.Dump(options["output"].as<std::string>() + ".mut");
+			mut_avg.Dump(result["output"].as<std::string>() + ".mut");
 
 			TraverseTreeSample(mtr.tree.nodes[2*N-2], sample_ages, coords, ages);
 
-			std::ofstream os(options["output"].as<std::string>() + ".plotcoords");
+			std::ofstream os(result["output"].as<std::string>() + ".plotcoords");
 			int i = 0;
 			os << "branchID age\n";
 			for(it_ages = coords.begin(); it_ages != coords.end(); it_ages++){
@@ -602,7 +602,7 @@ TreeViewSample(cxxopts::Options& options){
 		count_trees++;
 	}
 
-	RESOURCE_USAGE
+	ResourceUsage();
 
 }
 
@@ -610,24 +610,24 @@ TreeViewSample(cxxopts::Options& options){
 //////////////////////////////////////////////
 
 void
-MutationsOnBranches(cxxopts::Options& options){
+MutationsOnBranches(cxxopts::ParseResult& result, const std::string& help_text){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("haps") || !options.count("sample") || !options.count("snp_of_interest") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("haps") || !result.count("sample") || !result.count("snp_of_interest") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, mut, haps, sample, snp_of_interest, output. Optional: dist, mask." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
-		std::cout << options.help({""}) << std::endl;
+	if(result.count("help") || help){
+		std::cout << help_text << std::endl;
 		std::cout << "Outputs tree of interest as .newick file." << std::endl;
 		exit(0);
 	}  
 
-	int snp_of_interest = options["snp_of_interest"].as<int>();
+	int snp_of_interest = result["snp_of_interest"].as<int>();
 	int index_of_snp_of_interest;
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
@@ -636,14 +636,14 @@ MutationsOnBranches(cxxopts::Options& options){
 	//read in ancestor
 	fasta mask;
 	bool is_mask = false;
-	if(options.count("mask")){
-		mask.Read(options["mask"].as<std::string>());
+	if(result.count("mask")){
+		mask.Read(result["mask"].as<std::string>());
 		is_mask = true;
 	}
 
 	//////////////////////////////////
 	//Parse Data
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	MarginalTree mtr;
 	Muts::iterator it_mut;
@@ -655,7 +655,7 @@ MutationsOnBranches(cxxopts::Options& options){
 	//////////////////////////////////////////// Read Tree ///////////////////////////////////
 
 	Mutations mut;
-	mut.Read(options["mut"].as<std::string>());
+	mut.Read(result["mut"].as<std::string>());
 	index_of_snp_of_interest = 0;
 	for(std::vector<SNPInfo>::iterator it_mut = mut.info.begin(); it_mut != mut.info.end(); it_mut++){
 		if((*it_mut).pos >= snp_of_interest) break;
@@ -668,18 +668,18 @@ MutationsOnBranches(cxxopts::Options& options){
 	int L = 0;
 	igzstream is_L;
 	std::vector<int> pos;
-	if(options.count("dist")){
-		is_L.open(options["dist"].as<std::string>());
-		if(is_L.fail()) is_L.open(options["dist"].as<std::string>() + ".gz");
+	if(result.count("dist")){
+		is_L.open(result["dist"].as<std::string>());
+		if(is_L.fail()) is_L.open(result["dist"].as<std::string>() + ".gz");
 		if(is_L.fail()){
-			std::cerr << "Error while opening file " << options["dist"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["dist"].as<std::string>() << std::endl;
 			exit(1);
 		} 
 	}else{
-		is_L.open(options["mut"].as<std::string>());
-		if(is_L.fail()) is_L.open(options["mut"].as<std::string>() + ".gz");
+		is_L.open(result["mut"].as<std::string>());
+		if(is_L.fail()) is_L.open(result["mut"].as<std::string>() + ".gz");
 		if(is_L.fail()){
-			std::cerr << "Error while opening file " << options["mut"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["mut"].as<std::string>() << std::endl;
 			exit(1);
 		} 
 	}
@@ -691,11 +691,11 @@ MutationsOnBranches(cxxopts::Options& options){
 	is_L.close();
 
 	pos.resize(L);
-	if(options.count("dist")){
-		igzstream is_dist(options["dist"].as<std::string>());
-		if(is_dist.fail()) is_dist.open(options["dist"].as<std::string>() + ".gz");
+	if(result.count("dist")){
+		igzstream is_dist(result["dist"].as<std::string>());
+		if(is_dist.fail()) is_dist.open(result["dist"].as<std::string>() + ".gz");
 		if(is_dist.fail()){
-			std::cerr << "Error while opening file " << options["dist"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["dist"].as<std::string>() << std::endl;
 			exit(1);
 		}
 		getline(is_dist, line); 
@@ -738,7 +738,7 @@ MutationsOnBranches(cxxopts::Options& options){
 
       //std::cerr << min_snp << " " << max_snp << " " << min_bp << " " << max_bp << std::endl;
 
-			haps m_hap(options["haps"].as<std::string>().c_str(), options["sample"].as<std::string>().c_str());
+			haps m_hap(result["haps"].as<std::string>().c_str(), result["sample"].as<std::string>().c_str());
 			Data data(m_hap.GetN(), m_hap.GetL());
 			if(data.N != ancmut.NumTips()){
 				std::cerr << "Haps file and anc/mut have different number of samples" << std::endl;
@@ -819,7 +819,7 @@ MutationsOnBranches(cxxopts::Options& options){
 			}
 			m_hap.CloseFile();
 
-			std::ofstream os(options["output"].as<std::string>() + ".plotcoords.mut");
+			std::ofstream os(result["output"].as<std::string>() + ".plotcoords.mut");
 
 			os << "pos branchID\n";
 
@@ -841,7 +841,7 @@ MutationsOnBranches(cxxopts::Options& options){
 
 	}
 
-	RESOURCE_USAGE
+	ResourceUsage();
 
 }
 
@@ -858,24 +858,24 @@ void TraverseTree(Node& node, Tree& tree, std::ofstream& os){
 }
 
 void
-BranchesBelowMutation(cxxopts::Options& options){
+BranchesBelowMutation(cxxopts::ParseResult& result, const std::string& help_text){
 
 	//////////////////////////////////
 	//Program options
 
 	bool help = false;
-	if(!options.count("anc") || !options.count("mut") || !options.count("snp_of_interest") || !options.count("output")){
+	if(!result.count("anc") || !result.count("mut") || !result.count("snp_of_interest") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: anc, haps, sample, snp_of_interest, output." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
-		std::cout << options.help({""}) << std::endl;
+	if(result.count("help") || help){
+		std::cout << help_text << std::endl;
 		std::cout << "Outputs tree of interest as .newick file." << std::endl;
 		exit(0);
 	}  
 
-	int snp_of_interest    = options["snp_of_interest"].as<int>();
+	int snp_of_interest    = result["snp_of_interest"].as<int>();
 	int index_of_snp_of_interest;
 	int branch_of_interest;
 
@@ -885,7 +885,7 @@ BranchesBelowMutation(cxxopts::Options& options){
 
 	//////////////////////////////////
 	//Parse Data
-	AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+	AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
 	int N = ancmut.NumTips();
 	MarginalTree mtr;
 	Muts::iterator it_mut;
@@ -897,7 +897,7 @@ BranchesBelowMutation(cxxopts::Options& options){
 	//////////////////////////////////////////// Read Tree ///////////////////////////////////
 
 	Mutations mut;
-	mut.Read(options["mut"].as<std::string>());
+	mut.Read(result["mut"].as<std::string>());
 	index_of_snp_of_interest = 0;
 	for(std::vector<SNPInfo>::iterator it_mut = mut.info.begin(); it_mut != mut.info.end(); it_mut++){
 		if((*it_mut).pos >= snp_of_interest) break;
@@ -920,7 +920,7 @@ BranchesBelowMutation(cxxopts::Options& options){
 		if(count_trees == tree_index_of_interest){
 
 			//output list of SNPs mapping to each branch
-			std::ofstream os(options["output"].as<std::string>() + ".plotcoords.mut");
+			std::ofstream os(result["output"].as<std::string>() + ".plotcoords.mut");
 			os << "branchID\n";
 			TraverseTree(mtr.tree.nodes[branch_of_interest], mtr.tree, os);
 			os.close();
@@ -934,7 +934,7 @@ BranchesBelowMutation(cxxopts::Options& options){
 
 	}
 
-	RESOURCE_USAGE
+	ResourceUsage();
 
 }
 

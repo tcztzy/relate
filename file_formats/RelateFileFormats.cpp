@@ -1,8 +1,8 @@
+#include <string>
+#include <cxxopts.hpp>
+
 #include "FileFormats.cpp"
 #include "ConvertToTreeSequence.cpp"
-
-#include "cxxopts.hpp"
-#include <string>
 
 int main(int argc, char* argv[]){
 
@@ -24,45 +24,46 @@ int main(int argc, char* argv[]){
     ("i,input", "Filename of input.", cxxopts::value<std::string>())
     ("o,output", "Filename of output (excl file extension).", cxxopts::value<std::string>());
 
-  options.parse(argc, argv);
+  auto result = options.parse(argc, argv);
+  auto help_text = options.help({""});
 
-  std::string mode = options["mode"].as<std::string>();
+  std::string mode = result["mode"].as<std::string>();
 
   if(!mode.compare("ConvertFromHapLegendSample")){
   
-    ConvertFromHapLegendSample(options);
+    ConvertFromHapLegendSample(result, help_text);
   
   }else if(!mode.compare("ConvertFromVcf")){
   
-    ConvertFromVcf(options);
+    ConvertFromVcf(result, help_text);
   
   }else if(!mode.compare("RemoveNonBiallelicSNPs")){
   
-    RemoveNonBiallelicSNPs(options);
+    RemoveNonBiallelicSNPs(result, help_text);
   
   }else if(!mode.compare("RemoveSamples")){
   
-    RemoveSamples(options);
+    RemoveSamples(result, help_text);
   
   }else if(!mode.compare("FilterHapsUsingMask")){
   
-    FilterHapsUsingMask(options);
+    FilterHapsUsingMask(result, help_text);
   
   }else if(!mode.compare("FlipHapsUsingAncestor")){
   
-    FlipHapsUsingAncestor(options);
+    FlipHapsUsingAncestor(result, help_text);
 
   }else if(!mode.compare("GenerateSNPAnnotations")){
   
-    GenerateSNPAnnotations(options);
+    GenerateSNPAnnotations(result, help_text);
  
   }else if(!mode.compare("ConvertToTreeSequenceTxt")){
   
-    ConvertToTreeSequenceTxt(options);
+    ConvertToTreeSequenceTxt(result, help_text);
  
   }else if(!mode.compare("ConvertToTreeSequence")){
   
-    ConvertToTreeSequence(options);
+    ConvertToTreeSequence(result, help_text);
  
   }else{
 
@@ -74,12 +75,12 @@ int main(int argc, char* argv[]){
   }
 
   bool help = false;
-  if(!options.count("mode")){
+  if(!result.count("mode")){
     std::cout << "Not enough arguments supplied." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     exit(0);
   }
 

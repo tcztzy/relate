@@ -3,29 +3,29 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <cxxopts.hpp>
 
-#include "cxxopts.hpp"
 #include "filesystem.hpp"
 #include "data.hpp"
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "usage.hpp"
 
-int FindEquivalentBranches(cxxopts::Options& options, int chunk_index){
+int FindEquivalentBranches(cxxopts::ParseResult& result, const std::string& help_text, int chunk_index){
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "Use after BuildTopology to find equivalent branches in adjacent trees. Output written as bin file." << std::endl;
     exit(0);
   }
 
-  std::string file_out = options["output"].as<std::string>() + "/";
+  std::string file_out = result["output"].as<std::string>() + "/";
 
   int N, L, num_windows;
   FILE* fp = fopen((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), "r");
@@ -74,7 +74,7 @@ int FindEquivalentBranches(cxxopts::Options& options, int chunk_index){
 
   /////
   //First anc
-  std::string filename = dirname + options["output"].as<std::string>() + "_0.anc";
+  std::string filename = dirname + result["output"].as<std::string>() + "_0.anc";
   anc.ReadBin(filename);
   for(int anc_index = 0; anc_index < num_windows; anc_index++){
 
@@ -96,7 +96,7 @@ int FindEquivalentBranches(cxxopts::Options& options, int chunk_index){
     //If its not the last window, I have to find equivalent branches to the anc of the next window 
     if( anc_index < num_windows-1 ){
       AncesTree anc_next;
-      filename = dirname + options["output"].as<std::string>() + "_" + std::to_string(anc_index+1) + ".anc";
+      filename = dirname + result["output"].as<std::string>() + "_" + std::to_string(anc_index+1) + ".anc";
       anc_next.ReadBin(filename);
 
       it_seq = anc_next.seq.begin();
@@ -130,7 +130,7 @@ int FindEquivalentBranches(cxxopts::Options& options, int chunk_index){
 
   //Read ancs
   for(int i = 0; i < num_windows; i++){
-    filename = dirname + options["output"].as<std::string>() + "_" + std::to_string(i) + ".anc";
+    filename = dirname + result["output"].as<std::string>() + "_" + std::to_string(i) + ".anc";
     v_anc[i].ReadBin(filename);
   }
 
@@ -139,7 +139,7 @@ int FindEquivalentBranches(cxxopts::Options& options, int chunk_index){
 
   //Write ancs back to files
   for(int i = 0; i < num_windows; i++){
-    filename = dirname + options["output"].as<std::string>() + "_" + std::to_string(i) + ".anc";
+    filename = dirname + result["output"].as<std::string>() + "_" + std::to_string(i) + ".anc";
     v_anc[i].DumpBin(filename);
   }
  
@@ -148,7 +148,7 @@ int FindEquivalentBranches(cxxopts::Options& options, int chunk_index){
     std::remove(filename.c_str());
   }
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
   return 0;
 }

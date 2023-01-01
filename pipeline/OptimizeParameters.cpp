@@ -8,8 +8,8 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <cxxopts.hpp>
 
-#include "cxxopts.hpp"
 #include "data.hpp"
 #include "anc.hpp"
 #include "fast_painting.hpp"
@@ -20,16 +20,16 @@
 #include "Paint.cpp"
 #include "Clean.cpp"
 
-int OptimizeParameters(cxxopts::Options& options){
+int OptimizeParameters(cxxopts::ParseResult& result, const std::string& help_text){
 
 	bool help = false;
-	if(!options.count("haps") || !options.count("sample") || !options.count("map") || !options.count("output")){
+	if(!result.count("haps") || !result.count("sample") || !result.count("map") || !result.count("output")){
 		std::cout << "Not enough arguments supplied." << std::endl;
 		std::cout << "Needed: haps, sample, map, output. Optional: dist." << std::endl;
 		help = true;
 	}
-	if(options.count("help") || help){
-		std::cout << options.help({""}) << std::endl;
+	if(result.count("help") || help){
+		std::cout << help_text << std::endl;
 		std::cout << "Use to make smaller chunks from the data." << std::endl;
 		exit(0);
 	}
@@ -40,22 +40,22 @@ int OptimizeParameters(cxxopts::Options& options){
 	int N, L;
 	double memory_size;
 	int start_chunk, end_chunk;
-	std::string file_out = options["output"].as<std::string>() + "/";
+	std::string file_out = result["output"].as<std::string>() + "/";
 
 	std::cerr << "---------------------------------------------------------" << std::endl;
 	std::cerr << "Using:" << std::endl;
-	std::cerr << "  " << options["haps"].as<std::string>() << std::endl;    
-	std::cerr << "  " << options["sample"].as<std::string>() << std::endl;
-	std::cerr << "  " << options["map"].as<std::string>() << std::endl;
-	if(!options.count("coal")){
-		std::cerr << "with mu = " << options["mutation_rate"].as<float>() << " and 2Ne = " << options["effectiveN"].as<float>() << "." << std::endl;
+	std::cerr << "  " << result["haps"].as<std::string>() << std::endl;    
+	std::cerr << "  " << result["sample"].as<std::string>() << std::endl;
+	std::cerr << "  " << result["map"].as<std::string>() << std::endl;
+	if(!result.count("coal")){
+		std::cerr << "with mu = " << result["mutation_rate"].as<float>() << " and 2Ne = " << result["effectiveN"].as<float>() << "." << std::endl;
 	}else{
-		std::cerr << "with mu = " << options["mutation_rate"].as<float>() << " and coal = " << options["coal"].as<std::string>() << "." << std::endl;
+		std::cerr << "with mu = " << result["mutation_rate"].as<float>() << " and coal = " << result["coal"].as<std::string>() << "." << std::endl;
 	}
 
 	std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
 
-	MakeChunks(options);
+	MakeChunks(result, help_text);
 
 	FILE* fp = fopen((file_out + "parameters.bin").c_str(), "r");
 	assert(fp != NULL);
@@ -79,9 +79,9 @@ int OptimizeParameters(cxxopts::Options& options){
 
 	float val;
 	std::string line;
-	if(options.count("input")){
+	if(result.count("input")){
 			
-		std::ifstream is(options["input"].as<std::string>());
+		std::ifstream is(result["input"].as<std::string>());
 	
 		theta.clear();
 		rec_factor.clear();
@@ -124,7 +124,7 @@ int OptimizeParameters(cxxopts::Options& options){
 		std::cerr << "Starting chunk " << c << " of " << end_chunk << "." << std::endl;
 		std::cerr << "---------------------------------------------------------" << std::endl << std::endl;
 
-		std::string file_out = options["output"].as<std::string>() + "/";
+		std::string file_out = result["output"].as<std::string>() + "/";
 
 		int N, L, num_windows;
 		std::vector<int> window_boundaries;
@@ -157,7 +157,7 @@ int OptimizeParameters(cxxopts::Options& options){
 					mean_rec  += data.r[l];
 				}
 
-				Paint(options,c);
+				Paint(result, c);
 				for(int section = 0; section < num_windows; section++){
 
 					AncesTree anc;
@@ -179,9 +179,9 @@ int OptimizeParameters(cxxopts::Options& options){
 
 	}
 
-	Clean(options);
+	Clean(result, help_text);
 
-  std::ofstream os(options["output"].as<std::string>() + ".opt");
+  std::ofstream os(result["output"].as<std::string>() + ".opt");
 	for(int theta_index = 0; theta_index < (int) theta.size(); theta_index++){
 		for(int rec_index = 0; rec_index < (int) rec_factor.size(); rec_index++){
       os << theta[theta_index] << " " << rec_factor[rec_index] << " " << num_notmapping[theta_index][rec_index] << std::endl;
@@ -189,7 +189,7 @@ int OptimizeParameters(cxxopts::Options& options){
 	}
 	os.close();
 
-	RESOURCE_USAGE
+	ResourceUsage();
 
 	return 0;
 }

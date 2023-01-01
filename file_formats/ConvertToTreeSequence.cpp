@@ -22,19 +22,19 @@
 }
 
 void
-ConvertToTreeSequenceTxt(cxxopts::Options& options){
+ConvertToTreeSequenceTxt(cxxopts::ParseResult& result, const std::string& help_text){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output") ){
+  if( !result.count("input") || !result.count("output") ){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "Converts anc/mut file format (Relate) to tree sequence file format (tskit) as txt files.." << std::endl;
     exit(0);
   }  
@@ -44,7 +44,7 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
 
   ////////////////////////
   //read in anc file
-  AncMutIterators ancmut(options["input"].as<std::string>() + ".anc", options["mut"].as<std::string>() + ".mut");
+  AncMutIterators ancmut(result["input"].as<std::string>() + ".anc", result["mut"].as<std::string>() + ".mut");
   int N = ancmut.NumTips();
   int L = ancmut.NumSnps();
   MarginalTree mtr;
@@ -54,12 +54,12 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
   int root = 2*data.N - 2;
 
   Mutations mut;
-  mut.Read(options["input"].as<std::string>() + ".mut");
+  mut.Read(result["input"].as<std::string>() + ".mut");
 
   //Individuals table
-  std::ofstream os_indiv_table(options["output"].as<std::string>() + ".indiv_table");
+  std::ofstream os_indiv_table(result["output"].as<std::string>() + ".indiv_table");
   if(os_indiv_table.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".indiv_table" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".indiv_table" << std::endl;
   }
   os_indiv_table << "flags\tlocation\n";
   for(int i = 0; i < data.N; i++){
@@ -68,9 +68,9 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
   os_indiv_table.close();
 
   //Site table
-  std::ofstream os_site_table(options["output"].as<std::string>() + ".site_table");
+  std::ofstream os_site_table(result["output"].as<std::string>() + ".site_table");
   if(os_site_table.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".site_table" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".site_table" << std::endl;
   }
   os_site_table << "position\tancestral_state\n";
   for(std::vector<SNPInfo>::iterator it_mut = mut.info.begin(); it_mut != mut.info.end(); it_mut++){
@@ -80,9 +80,9 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
 
   //Population table
 
-  std::ofstream os_population_table(options["output"].as<std::string>() + ".population_table");
+  std::ofstream os_population_table(result["output"].as<std::string>() + ".population_table");
   if(os_population_table.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".population_table" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".population_table" << std::endl;
   }
   os_population_table << "id\tmetadata\n";
   for(int i = 0; i < data.N; i++){
@@ -95,9 +95,9 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
 
   //Node table
 
-  std::ofstream os_node_table(options["output"].as<std::string>() + ".node_table");
+  std::ofstream os_node_table(result["output"].as<std::string>() + ".node_table");
   if(os_node_table.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".node_table" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".node_table" << std::endl;
   }
   os_node_table << "is_sample\tindividual\ttime\tmetadata" << std::endl;
 
@@ -113,17 +113,17 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
 
   //Edge table
 
-  std::ofstream os_edge_table(options["output"].as<std::string>() + ".edge_table");
+  std::ofstream os_edge_table(result["output"].as<std::string>() + ".edge_table");
   if(os_edge_table.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".edge_table" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".edge_table" << std::endl;
   }
   os_edge_table << "left\tright\tparent\tchild" << std::endl;
 
   //Mutation table
 
-  std::ofstream os_mut_table(options["output"].as<std::string>() + ".mut_table");
+  std::ofstream os_mut_table(result["output"].as<std::string>() + ".mut_table");
   if(os_mut_table.fail()){
-    std::cerr << "Error while opening file " << options["output"].as<std::string>() + ".mut_table" << std::endl;
+    std::cerr << "Error while opening file " << result["output"].as<std::string>() + ".mut_table" << std::endl;
   }
   os_mut_table << "site\tnode\tderived_state" << std::endl;
 
@@ -202,24 +202,24 @@ ConvertToTreeSequenceTxt(cxxopts::Options& options){
   os_node_table.close();
   os_edge_table.close();
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
 }
 
 void
-ConvertToTreeSequence(cxxopts::Options& options){
+ConvertToTreeSequence(cxxopts::ParseResult& result, const std::string& help_text){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( !options.count("input") || !options.count("output") ){
+  if( !result.count("input") || !result.count("output") ){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: input, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "Converts anc/mut file format (Relate) to tree sequence file format (tskit).." << std::endl;
     exit(0);
   }  
@@ -239,7 +239,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
 
 	//We open anc file and read one tree at a time. File remains open until all trees have been read OR ancmut.CloseFiles() is called.
 	//The mut file is read once, file is closed after constructor is called.
-	AncMutIterators ancmut(options["input"].as<std::string>() + ".anc", options["input"].as<std::string>() + ".mut");
+	AncMutIterators ancmut(result["input"].as<std::string>() + ".anc", result["input"].as<std::string>() + ".mut");
 
 	num_bases_tree_persists = ancmut.NextTree(mtr, it_mut);
 	it_mut_first = it_mut;
@@ -248,7 +248,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
 	std::vector<float> coordinates(2*data.N-1,0.0);
 
 	Mutations mut;
-	mut.Read(options["input"].as<std::string>() + ".mut");
+	mut.Read(result["input"].as<std::string>() + ".mut");
 	
 	//........................................................................
 	//Populate ts tables
@@ -434,7 +434,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
   //////////////////////////
 
   // Write out the tree sequence
-  ret = tsk_table_collection_dump(&tables, (options["output"].as<std::string>() + ".trees").c_str(), 0);        
+  ret = tsk_table_collection_dump(&tables, (result["output"].as<std::string>() + ".trees").c_str(), 0);        
   check_tsk_error(ret);
   tsk_table_collection_free(&tables); 
 
@@ -459,7 +459,7 @@ ConvertToTreeSequence(cxxopts::Options& options){
   check_tsk_error(iter);
   */
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
 }
 

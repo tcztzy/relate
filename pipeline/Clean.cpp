@@ -7,23 +7,23 @@
 #include <sys/resource.h>
 #include <ctime>
 #include <string>
+#include <cxxopts.hpp>
 
-#include "cxxopts.hpp"
 #include "filesystem.hpp"
 #include "collapsed_matrix.hpp"
 #include "data.hpp"
 #include "usage.hpp"
 
-int Clean(cxxopts::Options& options){
+int Clean(cxxopts::ParseResult& result, const std::string& help_text){
 
   bool help = false;
-  if(!options.count("output")){
+  if(!result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "This function will attempt to delete all temporary files created by Relate. Use when Relate crashes." << std::endl;
     exit(0);
   }
@@ -32,7 +32,7 @@ int Clean(cxxopts::Options& options){
   std::cerr << "---------------------------------------------------------" << std::endl;
   std::cerr << "Cleaning directory..." << std::endl;
 
-  std::string file_out = options["output"].as<std::string>() + "/";
+  std::string file_out = result["output"].as<std::string>() + "/";
 
   int N, L, num_chunks;
   FILE* fp = fopen((file_out + "parameters.bin").c_str(), "r");
@@ -69,7 +69,7 @@ int Clean(cxxopts::Options& options){
 
         for(int i = 0; i < num_windows; i++){
           filename        = dirname + "equivalent_branches_" + std::to_string(i) + ".bin";
-          output_filename = dirname + options["output"].as<std::string>();
+          output_filename = dirname + result["output"].as<std::string>();
           std::remove(filename.c_str());
           std::remove((output_filename + "_" + std::to_string(i) + ".anc").c_str());
           std::remove((output_filename + "_" + std::to_string(i) + ".mut").c_str());
@@ -88,7 +88,7 @@ int Clean(cxxopts::Options& options){
 
       }
 
-      std::string file_prefix = dirname + options["output"].as<std::string>();
+      std::string file_prefix = dirname + result["output"].as<std::string>();
       std::remove((file_prefix + "_c" + std::to_string(chunk_index) + ".mut").c_str());
       std::remove((file_prefix + "_c" + std::to_string(chunk_index) + ".anc").c_str());
 
@@ -119,7 +119,7 @@ int Clean(cxxopts::Options& options){
   struct stat info;
   if( stat( (file_out).c_str() , &info ) == 0 ) f.RmDir( (file_out).c_str() );
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
   return 0;
 

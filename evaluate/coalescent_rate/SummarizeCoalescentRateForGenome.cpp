@@ -7,19 +7,19 @@
 #include <ctime>
 #include <tgmath.h>
 
-int SummarizeCoalescentRateForGenome(cxxopts::Options& options){
+int SummarizeCoalescentRateForGenome(cxxopts::ParseResult& result, const std::string& help_text){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if( ((!options.count("first_chr") || !options.count("last_chr")) && !options.count("chr")) || !options.count("output")){
+  if( ((!result.count("first_chr") || !result.count("last_chr")) && !result.count("chr")) || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: chr or (first_chr, last_chr), output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "Summarizes .bin files for chromosomes." << std::endl;
     exit(0);
   }  
@@ -29,12 +29,12 @@ int SummarizeCoalescentRateForGenome(cxxopts::Options& options){
 
   //calculate epoch times
 	std::vector<std::string> filenames;
-	std::string filename_base = options["output"].as<std::string>();
-	if(options.count("chr")){
+	std::string filename_base = result["output"].as<std::string>();
+	if(result.count("chr")){
 
-		igzstream is_chr(options["chr"].as<std::string>());
+		igzstream is_chr(result["chr"].as<std::string>());
 		if(is_chr.fail()){
-			std::cerr << "Error while opening file " << options["chr"].as<std::string>() << std::endl;
+			std::cerr << "Error while opening file " << result["chr"].as<std::string>() << std::endl;
 		}
 		std::string line;
 		while(getline(is_chr, line)){
@@ -44,8 +44,8 @@ int SummarizeCoalescentRateForGenome(cxxopts::Options& options){
 
 	}else{
 
-    int start     = options["first_chr"].as<int>(); 
-    int end       = options["last_chr"].as<int>();
+    int start     = result["first_chr"].as<int>(); 
+    int end       = result["last_chr"].as<int>();
 		for(int chr = start; chr <= end; chr++){
 			filenames.push_back(filename_base + "_chr" + std::to_string(chr) + ".bin");
 		}
@@ -91,7 +91,7 @@ int SummarizeCoalescentRateForGenome(cxxopts::Options& options){
   }
 
   //output as bin
-  fp = fopen((options["output"].as<std::string>() + ".bin").c_str(), "wb");  
+  fp = fopen((result["output"].as<std::string>() + ".bin").c_str(), "wb");  
 
   fwrite(&num_epochs, sizeof(int), 1, fp);
   fwrite(&epochs[0], sizeof(float), epochs.size(), fp);
@@ -102,7 +102,7 @@ int SummarizeCoalescentRateForGenome(cxxopts::Options& options){
   fclose(fp);
 
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
 
   return 0;

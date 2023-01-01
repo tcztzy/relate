@@ -5,8 +5,8 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <cxxopts.hpp>
 
-#include "cxxopts.hpp"
 #include "data.hpp"
 #include "usage.hpp"
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]){
   data.ReadGP(options["haps"].as<std::string>(),options["legend"].as<std::string>(),options["map"].as<std::string>(),options["ancestral_state"].as<std::string>(), options["mask"].as<std::string>(), options["excluded_samples"].as<std::string>());
   data.PrepareMutationsFile(options["fasta"].as<std::string>(), options["samples"].as<std::string>(), options["excluded_samples"].as<std::string>());
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
   return 0;
 }

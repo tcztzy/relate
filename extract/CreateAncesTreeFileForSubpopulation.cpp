@@ -7,33 +7,33 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <gzstream.h>
+#include <cxxopts.hpp>
 
 #include "filesystem.hpp"
 #include "collapsed_matrix.hpp"
 #include "anc.hpp"
-#include "cxxopts.hpp"
 #include "usage.hpp"
 
 
 void
-MakeAncesTreeFile(cxxopts::Options& options, Mutations& mut, std::vector<int>& include_snp){
+MakeAncesTreeFile(cxxopts::ParseResult& result, const std::string& help_text, Mutations& mut, std::vector<int>& include_snp){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("pop_of_interest") || !options.count("poplabels") || !options.count("anc") || !options.count("mut") || !options.count("output")){
+  if(!result.count("pop_of_interest") || !result.count("poplabels") || !result.count("anc") || !result.count("mut") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: pop_of_interest, poplabels, anc, mut, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "Estimate population size using coalescent rate." << std::endl;
     exit(0);
   }  
 
-  AncMutIterators ancmut(options["anc"].as<std::string>(), options["mut"].as<std::string>());
+  AncMutIterators ancmut(result["anc"].as<std::string>(), result["mut"].as<std::string>());
   int N = ancmut.NumTips();
   int L = ancmut.NumSnps();
   int num_trees = ancmut.NumTrees();
@@ -45,15 +45,15 @@ MakeAncesTreeFile(cxxopts::Options& options, Mutations& mut, std::vector<int>& i
   std::string line, read;
 
   std::cerr << "---------------------------------------------------------" << std::endl;
-  std::cerr << "Calculating anc file for " << options["anc"].as<std::string>() << " and subpopulation(s) ";
+  std::cerr << "Calculating anc file for " << result["anc"].as<std::string>() << " and subpopulation(s) ";
 
   Sample sample;
-  sample.Read(options["poplabels"].as<std::string>());
+  sample.Read(result["poplabels"].as<std::string>());
   std::string label;
-  if(!options.count("pop_of_interest")){
+  if(!result.count("pop_of_interest")){
     label = sample.AssignPopOfInterest("All");
   }else{
-    label = sample.AssignPopOfInterest(options["pop_of_interest"].as<std::string>());
+    label = sample.AssignPopOfInterest(result["pop_of_interest"].as<std::string>());
   }
 
   if(label.compare("All")){
@@ -256,7 +256,7 @@ MakeAncesTreeFile(cxxopts::Options& options, Mutations& mut, std::vector<int>& i
 
   filesys f;
   
-  std::string dirname         = options["output"].as<std::string>() + "/";
+  std::string dirname         = result["output"].as<std::string>() + "/";
   f.MakeDir((dirname).c_str());
 
   std::string output_filename = dirname + "equivalent_branches_0.bin";
@@ -275,7 +275,7 @@ MakeAncesTreeFile(cxxopts::Options& options, Mutations& mut, std::vector<int>& i
   //Data data(((*v_anc[0].seq.begin()).tree.nodes.size() + 1)/2, 1);
   //AncesTreeBuilder ancbuilder(data);
   ancbuilder.AssociateTrees(v_anc, dirname);
-  v_anc[0].Dump(options["output"].as<std::string>() + ".anc");
+  v_anc[0].Dump(result["output"].as<std::string>() + ".anc");
  
   std::remove((dirname + "equivalent_branches_0.bin").c_str());
   f.RmDir( dirname.c_str() ); 
@@ -283,19 +283,19 @@ MakeAncesTreeFile(cxxopts::Options& options, Mutations& mut, std::vector<int>& i
 }
 
 void
-CreateAncesTreeFileForSubpopulation(cxxopts::Options& options){
+CreateAncesTreeFileForSubpopulation(cxxopts::ParseResult& result, const std::string& help_text){
 
   //////////////////////////////////
   //Program options
 
   bool help = false;
-  if(!options.count("pop_of_interest") || !options.count("poplabels") || !options.count("anc") || !options.count("mut") || !options.count("output")){
+  if(!result.count("pop_of_interest") || !result.count("poplabels") || !result.count("anc") || !result.count("mut") || !result.count("output")){
     std::cout << "Not enough arguments supplied." << std::endl;
     std::cout << "Needed: pop_of_interest, poplabels, anc, mut, output." << std::endl;
     help = true;
   }
-  if(options.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+  if(result.count("help") || help){
+    std::cout << help_text << std::endl;
     std::cout << "Estimate population size using coalescent rate." << std::endl;
     exit(0);
   } 
@@ -303,12 +303,12 @@ CreateAncesTreeFileForSubpopulation(cxxopts::Options& options){
   std::vector<int> include_snp;
   //std::vector<AncesTree> v_anc(1);
   Mutations mut;
-  mut.Read(options["mut"].as<std::string>());
+  mut.Read(result["mut"].as<std::string>());
   if(mut.info[0].freq.size() == 0){
     std::cerr << "We recommend to first add population annotation to .mut using RelateFileFormats --mode GenerateSNPAnnotations" << std::endl;
     //exit(1);
   }
-  MakeAncesTreeFile(options, mut, include_snp);
+  MakeAncesTreeFile(result, help_text, mut, include_snp);
   ////////////////////////////////////////////////////////////////////////////////////////////////
   //Propagate mutations
 
@@ -321,18 +321,18 @@ CreateAncesTreeFileForSubpopulation(cxxopts::Options& options){
   //////////////////////// Extract Subtrees //////////////
 
   Sample sample;
-  sample.Read(options["poplabels"].as<std::string>());
+  sample.Read(result["poplabels"].as<std::string>());
   std::string label;
-  if(!options.count("pop_of_interest")){
+  if(!result.count("pop_of_interest")){
     label = sample.AssignPopOfInterest("All");
   }else{
-    label = sample.AssignPopOfInterest(options["pop_of_interest"].as<std::string>());
+    label = sample.AssignPopOfInterest(result["pop_of_interest"].as<std::string>());
   }
 
   std::string line;
   char id[512], pop[512];
-  igzstream is_pops(options["poplabels"].as<std::string>());
-  std::ofstream os_pops(options["output"].as<std::string>() + ".poplabels");
+  igzstream is_pops(result["poplabels"].as<std::string>());
+  std::ofstream os_pops(result["output"].as<std::string>() + ".poplabels");
   getline(is_pops, line);
   os_pops << line << "\n";
   while(getline(is_pops, line)){
@@ -382,9 +382,9 @@ CreateAncesTreeFileForSubpopulation(cxxopts::Options& options){
     }
     snp++;
   }
-  mut_subset.Dump(options["output"].as<std::string>() + ".mut");
+  mut_subset.Dump(result["output"].as<std::string>() + ".mut");
   std::remove("equivalent_branches_0.bin");
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
 }

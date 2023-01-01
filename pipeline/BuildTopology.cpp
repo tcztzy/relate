@@ -5,19 +5,19 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <cxxopts.hpp>
 
-#include "cxxopts.hpp"
 #include "data.hpp"
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "usage.hpp"
 
-int BuildTopology(cxxopts::Options& options,int chunk_index, int first_section, int last_section){
+int BuildTopology(cxxopts::ParseResult& result, int chunk_index, int first_section, int last_section){
 
   //////////////////////////////////
   //Parse Data
 
-  std::string file_out = options["output"].as<std::string>() + "/";
+  std::string file_out = result["output"].as<std::string>() + "/";
 
   int N, L, num_windows;
   std::vector<int> window_boundaries;
@@ -34,18 +34,18 @@ int BuildTopology(cxxopts::Options& options,int chunk_index, int first_section, 
 	Data data((file_out + "chunk_" + std::to_string(chunk_index) + ".hap").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".bp").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".dist").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".r").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".rpos").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".state").c_str()); //struct data is defined in data.hpp
   data.name = (file_out + "chunk_" + std::to_string(chunk_index) + "/paint/relate");
 
-  if(options.count("effectiveN")){
-    data.Ne = options["effectiveN"].as<float>();
+  if(result.count("effectiveN")){
+    data.Ne = result["effectiveN"].as<float>();
   }
   data.Ne *= 50;
 
   const std::string dirname = file_out + "chunk_" + std::to_string(chunk_index) + "/";
   if(first_section >= num_windows) return 1;
 
-	if(options.count("painting")){
+	if(result.count("painting")){
 
 		std::string val;
-		std::string painting = options["painting"].as<std::string>();
+		std::string painting = result["painting"].as<std::string>();
 		int i = 0;
 		for(;i < painting.size(); i++){
 			if(painting[i] == ',') break;
@@ -68,10 +68,10 @@ int BuildTopology(cxxopts::Options& options,int chunk_index, int first_section, 
 	}
 
   int seed;
-  if(!options.count("seed")){
+  if(!result.count("seed")){
 		seed = std::time(0) + getpid();
   }else{
-    seed = options["seed"].as<int>();
+    seed = result["seed"].as<int>();
 		srand(seed);
 		for(int i = 0; i < chunk_index + 100*first_section; i++){
       seed = rand();
@@ -80,13 +80,13 @@ int BuildTopology(cxxopts::Options& options,int chunk_index, int first_section, 
 	srand(seed);
 
   bool ancestral_state = true;
-  if(options.count("anc_allele_unknown")){
+  if(result.count("anc_allele_unknown")){
      ancestral_state = false;
   }
 
   std::vector<double> sample_ages(N);
-  if(options.count("sample_ages")){
-    igzstream is_ages(options["sample_ages"].as<std::string>());
+  if(result.count("sample_ages")){
+    igzstream is_ages(result["sample_ages"].as<std::string>());
 		if(is_ages.fail()){
 			std::cerr << "Warning: unable to open sample ages file" << std::endl;
 		}else{
@@ -103,8 +103,8 @@ int BuildTopology(cxxopts::Options& options,int chunk_index, int first_section, 
   //sample_ages.clear();
 
   int fb = 0;
-	if(options.count("fb")){
-	  fb = options["fb"].as<float>();
+	if(result.count("fb")){
+	  fb = result["fb"].as<float>();
 	}
 
   ///////////////////////////////////////////// Build AncesTree //////////////////////////
@@ -132,12 +132,12 @@ int BuildTopology(cxxopts::Options& options,int chunk_index, int first_section, 
 
     /////////////////////////////////////////// Dump AncesTree to File //////////////////////
 
-    anc.DumpBin(dirname + options["output"].as<std::string>() + "_" + std::to_string(section) + ".anc");
-    ancbuilder.mutations.DumpShortFormat(dirname + options["output"].as<std::string>() + "_" + std::to_string(section) + ".mut", section_startpos, section_endpos);
+    anc.DumpBin(dirname + result["output"].as<std::string>() + "_" + std::to_string(section) + ".anc");
+    ancbuilder.mutations.DumpShortFormat(dirname + result["output"].as<std::string>() + "_" + std::to_string(section) + ".mut", section_startpos, section_endpos);
 
   }
 
-  RESOURCE_USAGE
+  ResourceUsage();
 
   return 0;
 }
