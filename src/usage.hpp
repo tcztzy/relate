@@ -3,7 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sys/resource.h>
-void ResourceUsage() {
+inline void ResourceUsage() {
   /////////////////////////////////////////////
   //Resource Usage
 

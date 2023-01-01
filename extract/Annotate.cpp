@@ -1,6 +1,10 @@
 #include <string>
 #include <cxxopts.hpp>
 
+#include "data.hpp"
+#include "sample.hpp"
+#include "anc.hpp"
+#include "mutations.hpp"
 #include "filesystem.hpp"
 #include "usage.hpp"
 

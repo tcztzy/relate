@@ -12,6 +12,8 @@
 #include "filesystem.hpp"
 #include "collapsed_matrix.hpp"
 #include "anc.hpp"
+#include "anc_builder.hpp"
+#include "mutations.hpp"
 #include "usage.hpp"
 
 

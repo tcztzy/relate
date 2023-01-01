@@ -8,6 +8,7 @@
 
 #include "data.hpp"
 #include "anc.hpp"
+#include "mutations.hpp"
 #include "usage.hpp"
 
 void
