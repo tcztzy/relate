@@ -2,6 +2,7 @@
 
 #include "data.hpp"
 #include "fast_painting.hpp"
+#include "fast_log.hpp"
 
 
 TEST_CASE( "Testing painting" ){

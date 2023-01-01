@@ -1,4 +1,5 @@
 #include "fast_painting.hpp"
+#include "fast_log.hpp"
 
 /****
  * Input

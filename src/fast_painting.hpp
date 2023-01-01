@@ -1,7 +1,6 @@
 #ifndef FAST_PAINTING_HPP
 #define FAST_PAINTING_HPP
 
-#include "fast_log.hpp"
 #include "data.hpp"
 #include "collapsed_matrix.hpp"
 

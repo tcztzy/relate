@@ -1,4 +1,5 @@
 #include "anc_builder.hpp"
+#include "fast_log.hpp"
 
 //////////////////////// DistanceMeasure //////////////////
 

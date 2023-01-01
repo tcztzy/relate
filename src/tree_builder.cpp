@@ -1,4 +1,5 @@
 #include "tree_builder.hpp"
+#include "fast_log.hpp"
 
 
 //dist contains symmetric distance

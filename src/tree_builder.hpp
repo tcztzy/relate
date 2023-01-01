@@ -5,7 +5,6 @@
 // Class for Hierarchical clustering.
 /////////////////////////////
 
-#include "fast_log.hpp"
 #include "collapsed_matrix.hpp"
 #include "data.hpp"
 #include "anc.hpp"

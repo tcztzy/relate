@@ -1,4 +1,5 @@
 #include "branch_length_estimator.hpp"
+#include "fast_log.hpp"
 
 
 //////////////////////////////////////////
