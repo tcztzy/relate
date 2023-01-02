@@ -1,20 +1,7 @@
 #ifndef DATA_HPP
 #define DATA_HPP
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <fstream>
-#include <list>
-#include <vector>
-#include <bitset>
-#include <map>
-#include <limits>
-#include <tgmath.h>
 #include <string>
-#include <stdlib.h>
-#include <string.h>
-#include <cassert>
 
 #include "collapsed_matrix.hpp"
 

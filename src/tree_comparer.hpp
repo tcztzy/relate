@@ -1,9 +1,7 @@
 #ifndef TREE_COMPARER_HPP
 #define TREE_COMPARER_HPP
 
-#include "anc.hpp"
 #include "tree_builder.hpp"
-#include "anc_builder.hpp"
 
 float DistanceUsingPearsonCorrelation(Tree& tr1, Tree& tr2);
 float PartitionMetric(Tree& tr1, Tree& tr2, float threshold = 1.0);

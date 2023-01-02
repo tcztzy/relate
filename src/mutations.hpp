@@ -2,11 +2,9 @@
 #define MUTATIONS_HPP
 
 #include <gzstream.h>
-#include "data.hpp"
+
 #include "anc.hpp"
 
-#include <iostream>
-#include <deque>
 
 struct SNPInfo{
 

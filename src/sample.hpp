@@ -1,11 +1,7 @@
 #ifndef SAMPLE_HPP
 #define SAMPLE_HPP
 
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 #include <vector>
-#include <algorithm>
 #include <map>
 
 struct Sample{

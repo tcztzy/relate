@@ -1,6 +1,8 @@
+#include <ctgmath>
+#include <sstream>
+
 #include "anc.hpp"
 
-//////////////////////////////////
 
 void
 Tree::GetMsPrime(igzstream& is, int num_nodes){

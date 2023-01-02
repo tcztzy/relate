@@ -5,19 +5,11 @@
 // Class for building tree sequences.
 /////////////////////////////
 
+#include <random>
+
 #include "collapsed_matrix.hpp"
 #include "data.hpp"
-#include "anc.hpp"
 #include "mutations.hpp"
-
-#include <utility> //for std::pair
-#include <limits>
-#include <utility>
-#include <tgmath.h>
-#include <random>
-#include <cassert>
-
-//////////////////////////////////////////////////////
 
 struct PropagateStructLocal{
 
@@ -93,7 +85,6 @@ class AncesTreeBuilder{
 
     int N, N_total, root;
     int L;
-    int section;
 
     //for mapping mutations
     int thr; //threshold for mismatches when placing mutations on tree.

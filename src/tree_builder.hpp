@@ -4,19 +4,10 @@
 ////////////////////////////
 // Class for Hierarchical clustering.
 /////////////////////////////
+#include <random>
 
-#include "collapsed_matrix.hpp"
 #include "data.hpp"
 #include "anc.hpp"
-
-#include <sys/types.h>
-#include <math.h>
-#include <unistd.h>
-#include <algorithm>
-#include <ctime>
-#include <deque>
-#include <set>
-#include <random>
 
 struct Candidate{
   int lin1 = -1;

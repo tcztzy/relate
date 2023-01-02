@@ -1,10 +1,7 @@
 #ifndef PLOT_HPP
 #define PLOT_HPP
 
-#include <iostream>
 #include <vector>
-#include <cassert>
-#include <tgmath.h>
 
 class plot{
 

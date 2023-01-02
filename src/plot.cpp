@@ -1,3 +1,6 @@
+#include <ctgmath>
+#include <iostream>
+
 #include "plot.hpp"
 
 void 

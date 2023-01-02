@@ -5,17 +5,11 @@
 // Class for Trees and AncesTrees
 ///////////////////////////
 
+#include <list>
 #include <gzstream.h>
+
 #include "data.hpp"
 #include "sample.hpp"
-
-#include <iostream>
-#include <iomanip>
-#include <list>
-#include <limits>
-#include <deque>
-#include <ctime>
-#include <tgmath.h>
 
 //Data structure of a node in a tree
 struct Node{

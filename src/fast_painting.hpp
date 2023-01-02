@@ -1,16 +1,11 @@
 #ifndef FAST_PAINTING_HPP
 #define FAST_PAINTING_HPP
 
+#include <ctgmath>
+#include <vector>
+
 #include "data.hpp"
 #include "collapsed_matrix.hpp"
-
-#include <iostream>
-#include <list>
-#include <vector>
-#include <limits>
-#include <tgmath.h>
-
-#include <cassert>
 
 class FastPainting{
 
