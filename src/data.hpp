@@ -1,8 +1,6 @@
 #ifndef DATA_HPP
 #define DATA_HPP
 
-#include "collapsed_matrix.hpp"
-
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -17,6 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cassert>
+
+#include "collapsed_matrix.hpp"
+
 
 class gzip{
 

@@ -7,7 +7,6 @@ relate_sources = [
     'branch_length_estimator.cpp',
     'tree_builder.cpp',
     'data.cpp',
-    'filesystem.cpp',
     'mutations.cpp',
     'plot.cpp',
     'sample.cpp',

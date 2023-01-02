@@ -1,16 +1,11 @@
-#include <iomanip>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <ctime>
-#include <string>
+#include <filesystem>
+#include <gzstream.h>
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
-#include "collapsed_matrix.hpp"
-#include "data.hpp"
-#include "anc.hpp"
 #include "anc_builder.hpp"
 #include "usage.hpp"
+namespace fs = std::filesystem;
+
 
 int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
 
@@ -282,13 +277,12 @@ int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
   std::remove((file_out + "parameters.bin").c_str());
   std::remove((file_out + "props.bin").c_str());
 
-  filesys f;
   for(int c = 0; c < num_chunks; c++){
     //now delete directories
-    f.RmDir( (file_out + "chunk_" + std::to_string(c) + "/paint/").c_str() );
-    f.RmDir( (file_out + "chunk_" + std::to_string(c) + "/").c_str() );
+    fs::remove_all(file_out + "chunk_" + std::to_string(c) + "/paint/");
+    fs::remove_all(file_out + "chunk_" + std::to_string(c) + "/");
   }
-  f.RmDir( (file_out).c_str() );
+  fs::remove_all(file_out);
   
   ResourceUsage();
 

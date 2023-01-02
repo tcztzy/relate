@@ -1,8 +1,6 @@
 #include <string>
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
-
 #include "GetTreeOfInterest.cpp"
 #include "CreateAncesTreeFileForSubpopulation.cpp"
 #include "RemoveTreesWithFewMutations.cpp"

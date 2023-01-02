@@ -3,7 +3,7 @@ project(
     'c',
     'cpp',
     version: '1.1.9',
-    default_options: ['cpp_std=c++14'],
+    default_options: ['cpp_std=c++17'],
 )
 subdir('src')
 cxxopts_proj = subproject('cxxopts')

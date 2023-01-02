@@ -2,25 +2,23 @@
 #ifndef PAINTING
 #define PAINTING
 
+#include <filesystem>
 #include <iostream>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <limits.h>
-#include <string> // required for std::string
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
 #include "data.hpp"
 #include "fast_painting.hpp"
 #include "usage.hpp"
 
+namespace fs = std::filesystem;
+
 int Paint(cxxopts::ParseResult& result, int chunk_index){
 
-  std::string file_out = result["output"].as<std::string>() + "/"; 
+  const fs::path file_out{result["output"].as<fs::path>()};
 
   int N, L, num_windows;
   std::vector<int> window_boundaries;
-  FILE* fp = fopen((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), "r");
+  FILE* fp = fopen((file_out / ("parameters_c" + std::to_string(chunk_index) + ".bin")).c_str(), "r");
   assert(fp != NULL);
   fread(&N, sizeof(int), 1, fp);
   fread(&L, sizeof(int), 1, fp);
@@ -30,10 +28,9 @@ int Paint(cxxopts::ParseResult& result, int chunk_index){
   fclose(fp);
   num_windows--;
 
-  bool use_transitions = true;
-
-	Data data((file_out + "chunk_" + std::to_string(chunk_index) + ".hap").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".bp").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".dist").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".r").c_str(), (file_out + "chunk_" + std::to_string(chunk_index) + ".rpos").c_str(),  (file_out + "chunk_" + std::to_string(chunk_index) + ".state").c_str()); //struct data is defined in data.hpp 
-  data.name = (file_out + "chunk_" + std::to_string(chunk_index) + "/paint/relate");
+  fs::path basename = file_out / ("chunk_" + std::to_string(chunk_index));
+	Data data(basename.replace_extension("hap").c_str(), basename.replace_extension("bp").c_str(), basename.replace_extension("dist").c_str(), basename.replace_extension("r").c_str(), basename.replace_extension("rpos").c_str(), basename.replace_extension("state").c_str()); //struct data is defined in data.hpp 
+  data.name = (file_out / ("chunk_" + std::to_string(chunk_index)) / "paint" / "relate");
 
   if(result.count("painting")){
 
@@ -64,9 +61,9 @@ int Paint(cxxopts::ParseResult& result, int chunk_index){
   std::cerr << "Painting sequences..." << std::endl;
 
   //create directory called paint/ if not existent
-  filesys f;
-  f.MakeDir((file_out + "chunk_" + std::to_string(chunk_index) + "/").c_str());
-  f.MakeDir((file_out + "chunk_" + std::to_string(chunk_index) + "/paint/").c_str());
+  const fs::path chunk_dir = file_out / ("chunk_" + std::to_string(chunk_index));
+  fs::create_directory(chunk_dir, file_out);
+  fs::create_directory(chunk_dir / "painting", chunk_dir);
 
   //////////////////////////////////////////// Paint sequence ////////////////////////////
 

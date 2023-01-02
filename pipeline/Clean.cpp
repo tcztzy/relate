@@ -2,17 +2,12 @@
 #ifndef CLEAN
 #define CLEAN
 
-#include <iomanip>
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <ctime>
-#include <string>
+#include <filesystem>
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
-#include "collapsed_matrix.hpp"
-#include "data.hpp"
 #include "usage.hpp"
+namespace fs = std::filesystem;
+
 
 int Clean(cxxopts::ParseResult& result, const std::string& help_text){
 
@@ -50,12 +45,10 @@ int Clean(cxxopts::ParseResult& result, const std::string& help_text){
   
   std::string filename, output_filename; 
   for(int chunk_index = 0; chunk_index < num_chunks; chunk_index++){
-  
-    struct stat info;
 
     std::string dirname = file_out + "chunk_" + std::to_string(chunk_index) + "/";
     //check if directory exists
-    if( stat( dirname.c_str(), &info ) == 0 ){
+    if( fs::exists(dirname) ){
 
       int N, L, num_windows;
       fp = fopen((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), "r");
@@ -77,7 +70,7 @@ int Clean(cxxopts::ParseResult& result, const std::string& help_text){
 
 
         //check if directory exists
-        if( stat( (file_out + "chunk_" + std::to_string(chunk_index) + "/paint/").c_str(), &info ) == 0 ){
+        if (fs::exists(file_out + "chunk_" + std::to_string(chunk_index) + "/paint/")) {
           //paint/ exists so delete it.  
           char painting_filename[1024];
           for(int w = 0; w < num_windows; w++){
@@ -103,21 +96,16 @@ int Clean(cxxopts::ParseResult& result, const std::string& help_text){
 
   }
 
-  filesys f;
   for(int c = 0; c < num_chunks; c++){
-
-    struct stat info;
-
     //now delete directories
-    if( stat( (file_out + "chunk_" + std::to_string(c) + "/paint/").c_str() , &info ) == 0 ) f.RmDir( (file_out + "chunk_" + std::to_string(c) + "/paint/").c_str() );
-    if( stat( (file_out + "chunk_" + std::to_string(c) + "/").c_str() , &info ) == 0 ) f.RmDir( (file_out + "chunk_" + std::to_string(c) + "/").c_str() );
+    if (fs::exists((file_out + "chunk_" + std::to_string(c) + "/paint/").c_str())) fs::remove_all((file_out + "chunk_" + std::to_string(c) + "/paint/"));
+    if (fs::exists((file_out + "chunk_" + std::to_string(c) + "/").c_str())) fs::remove_all((file_out + "chunk_" + std::to_string(c) + "/"));
   }
 
   std::remove((file_out + "parameters.bin").c_str());
   std::remove((file_out + "props.bin").c_str());
 
-  struct stat info;
-  if( stat( (file_out).c_str() , &info ) == 0 ) f.RmDir( (file_out).c_str() );
+  if (fs::exists(file_out)) fs::remove_all(file_out);
 
   ResourceUsage();
 

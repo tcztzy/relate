@@ -10,6 +10,7 @@
 #include "anc.hpp"
 #include "branch_length_estimator.hpp"
 #include "anc_builder.hpp"
+#include "tree_builder.hpp"
 #include "usage.hpp"
 
 int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text, int chunk_index, int first_section, int last_section){

@@ -9,8 +9,6 @@
 #include "data.hpp"
 #include "anc.hpp"
 #include "mutations.hpp"
-#include "fast_painting.hpp"
-#include "tree_builder.hpp"
 
 #include <utility> //for std::pair
 #include <limits>

@@ -1,15 +1,15 @@
 //Find equivalent branches in neighbouring trees
 
+#include <filesystem>
 #include <iostream>
-#include <sys/time.h>
-#include <sys/resource.h>
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
 #include "data.hpp"
 #include "anc.hpp"
 #include "anc_builder.hpp"
 #include "usage.hpp"
+namespace fs = std::filesystem;
+
 
 int FindEquivalentBranches(cxxopts::ParseResult& result, const std::string& help_text, int chunk_index){
 
@@ -48,9 +48,8 @@ int FindEquivalentBranches(cxxopts::ParseResult& result, const std::string& help
  
   /////////////////////////////
   //delete painting and data binaries
-  struct stat info;
   //check if directory exists
-  if( stat( (file_out + "chunk_" + std::to_string(chunk_index) + "/paint/").c_str(), &info ) == 0 ){
+  if( fs::exists((file_out + "chunk_" + std::to_string(chunk_index) + "/paint/").c_str())){
     //paint/ exists so delete it.  
     char painting_filename[1024];
     for(int w = 0; w < num_windows; w++){

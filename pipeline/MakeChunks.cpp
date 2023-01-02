@@ -3,14 +3,14 @@
 #define MAKE_CHUNKS
 
 #include <iostream>
-#include <sys/time.h>
-#include <sys/resource.h>
+#include <filesystem>
 #include <gzstream.h>
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
 #include "data.hpp"
 #include "usage.hpp"
+
+namespace fs = std::filesystem;
 
 int MakeChunks(cxxopts::ParseResult& result, const std::string& help_text, int chunk_size = 0){
 
@@ -35,14 +35,12 @@ int MakeChunks(cxxopts::ParseResult& result, const std::string& help_text, int c
   //////////////////////////////////
   //Parse Data
 
-  struct stat info;
   //check if directory exists
-  if( stat( (result["output"].as<std::string>() + "/").c_str(), &info ) == 0 ){
+  if (fs::exists(result["output"].as<fs::path>())) {
     std::cerr << "Error: Directory " << result["output"].as<std::string>() << " already exists. Relate will use this directory to store temporary files." << std::endl;
     exit(1);
   }
-  filesys f;
-  f.MakeDir((result["output"].as<std::string>() + "/").c_str());
+  fs::create_directory(result["output"].as<fs::path>());
 
   Data data;
   /*

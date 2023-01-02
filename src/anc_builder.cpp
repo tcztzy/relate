@@ -1,5 +1,7 @@
 #include "anc_builder.hpp"
 #include "fast_log.hpp"
+#include "fast_painting.hpp"
+#include "tree_builder.hpp"
 
 //////////////////////// DistanceMeasure //////////////////
 

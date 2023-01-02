@@ -1,20 +1,11 @@
 #include <iostream>
-#include <fstream>
-#include <utility>
-#include <string>
-#include <limits>
-#include <algorithm>
-#include <sys/time.h>
-#include <sys/resource.h>
+#include <filesystem>
 #include <gzstream.h>
 #include <cxxopts.hpp>
 
-#include "filesystem.hpp"
-#include "collapsed_matrix.hpp"
-#include "anc.hpp"
 #include "anc_builder.hpp"
-#include "mutations.hpp"
 #include "usage.hpp"
+namespace fs = std::filesystem;
 
 
 void
@@ -255,13 +246,11 @@ MakeAncesTreeFile(cxxopts::ParseResult& result, const std::string& help_text, Mu
     it_seq++;
     it_seq_prev++;
   }  //Write equivalent_branches to file
-
-  filesys f;
   
-  std::string dirname         = result["output"].as<std::string>() + "/";
-  f.MakeDir((dirname).c_str());
+  fs::path dirname = result["output"].as<fs::path>();
+  fs::create_directory(dirname);
 
-  std::string output_filename = dirname + "equivalent_branches_0.bin";
+  fs::path output_filename = dirname / "equivalent_branches_0.bin";
   FILE* pf = fopen(output_filename.c_str(), "wb");
   assert(pf != NULL);
 
@@ -279,8 +268,8 @@ MakeAncesTreeFile(cxxopts::ParseResult& result, const std::string& help_text, Mu
   ancbuilder.AssociateTrees(v_anc, dirname);
   v_anc[0].Dump(result["output"].as<std::string>() + ".anc");
  
-  std::remove((dirname + "equivalent_branches_0.bin").c_str());
-  f.RmDir( dirname.c_str() ); 
+  std::remove((dirname / "equivalent_branches_0.bin").c_str());
+  fs::remove_all(dirname);
 
 }
 
