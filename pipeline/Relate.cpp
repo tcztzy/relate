@@ -43,7 +43,12 @@ int main(int argc, char* argv[]){
   auto result = options.parse(argc, argv);
   auto help_text = options.help({""});
 
-  std::string mode = result["mode"].as<std::string>();
+  std::string mode;
+  if (result.count("mode")) {
+    mode = result["mode"].as<std::string>();
+  } else {
+    mode = "";
+  }
   if(result.count("output")){
     std::string output = result["output"].as<std::string>();
     for(std::string::iterator it_str = output.begin(); it_str != output.end(); it_str++){
@@ -303,7 +308,7 @@ int main(int argc, char* argv[]){
     help = true;
   }
   if(result.count("help") || help){
-    std::cout << options.help({""}) << std::endl;
+    std::cout << help_text << std::endl;
     exit(0);
   }
 
