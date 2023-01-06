@@ -63,7 +63,7 @@ int Paint(cxxopts::ParseResult& result, int chunk_index){
   //create directory called paint/ if not existent
   const fs::path chunk_dir = file_out / ("chunk_" + std::to_string(chunk_index));
   fs::create_directory(chunk_dir, file_out);
-  fs::create_directory(chunk_dir / "painting", chunk_dir);
+  fs::create_directory(chunk_dir / "paint", chunk_dir);
 
   //////////////////////////////////////////// Paint sequence ////////////////////////////
 
