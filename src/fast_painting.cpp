@@ -16,7 +16,19 @@
  */
 
 void 
-FastPainting::PaintSteppingStones(const Data& data, std::vector<int>& window_boundaries, std::vector<FILE*> pfiles, const int k){
+_PaintSteppingStones(
+  const Data& data,
+  std::vector<int>& window_boundaries,
+  std::vector<FILE*> pfiles,
+  const int k,
+  double prior_theta,
+  double prior_ntheta,
+  double theta_ratio,
+  double log_ntheta,
+  double log_small = log(0.01),
+  double lower_rescaling_threshold = 1e-10,
+  double upper_rescaling_threshold = 1e10
+) {
 
   //additional vector that records boundary SNPs
   int num_windows = window_boundaries.size() - 1;
@@ -256,6 +268,7 @@ FastPainting::PaintSteppingStones(const Data& data, std::vector<int>& window_bou
   ////
   //SNP > 0
 
+  double Nminusone = (double)data.N - 1.0;
   double r_x_alpha_sum;
   if(*it_r_prob < 1.0){
     r_x_alpha_sum = (*it_r_prob)/((1.0 - (*it_r_prob)) * Nminusone) * alpha_sum;
@@ -397,7 +410,7 @@ FastPainting::PaintSteppingStones(const Data& data, std::vector<int>& window_bou
   ///////////////
   //Backward algorithm
 
-  normalizing_constant = (double) log(Nminusone) - num_derived_sites * log_ntheta;
+  double normalizing_constant = (double) log(Nminusone) - num_derived_sites * log_ntheta;
 
   /////
   //SNP L-1
@@ -616,6 +629,24 @@ FastPainting::PaintSteppingStones(const Data& data, std::vector<int>& window_bou
      }
      */
 
+}
+
+void 
+FastPainting::PaintSteppingStones(const Data& data, std::vector<int>& window_boundaries, std::vector<FILE*> pfiles, const int k){
+  _PaintSteppingStones(data, window_boundaries, pfiles, k, prior_theta, prior_ntheta, theta_ratio, log_ntheta, log_small, lower_rescaling_threshold, upper_rescaling_threshold);
+}
+
+void
+FastPainting::PaintSteppingStones(const Data& data, const char* basename, size_t num_windows, const int *window_boundaries, const int k) const {
+  char filename[1024];
+  std::vector<FILE*> pfiles(num_windows);
+  for(int w = 0; w < num_windows; w++){
+    snprintf(filename, sizeof(char) * 1024, "%s_%i.bin", basename, w);
+    pfiles[w] = fopen(filename, "wb");
+    assert(pfiles[w] != NULL);
+  }
+  std::vector<int> _window_boundaries(window_boundaries, window_boundaries + num_windows);
+  _PaintSteppingStones(data, _window_boundaries, pfiles, k, prior_theta, prior_ntheta, theta_ratio, log_ntheta, log_small, lower_rescaling_threshold, upper_rescaling_threshold);
 }
 
 void 

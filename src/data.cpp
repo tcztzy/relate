@@ -114,6 +114,13 @@ Data::Data(const char* filename_dist, const char* filename_param, int Ne, double
 }
 
 
+void Data::SetPainting(double theta, double rho) {
+  this->theta = theta;
+  this->ntheta = 1.0 - theta;
+  for (double& r : this->r)
+    r *= rho;
+}
+
 /////////////////////////////////////
 
 void 

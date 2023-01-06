@@ -53,7 +53,7 @@ struct Data{
   Data(const char* filename_dist, const char* filename_param, int Ne = 3e4, double mu = 1.25e-8);
  
   ///////////
-
+  void SetPainting(double theta, double rho);
   void MakeChunks(const std::string& filename_haps, const std::string& filename_sample, const std::string& filename_map, const std::string& filename_dist, const std::string& file_out, bool use_transition, float max_memory = 5);
   //void MakeChunks2(const std::string& filename_haps, const std::string& filename_sample, const std::string& filename_map, const std::string& filename_dist);
 
