@@ -55,11 +55,10 @@ pub fn paint(output: &PathBuf, chunk_index: usize, painting: Vec<f64>) -> miette
     let mut rdr = std::io::Cursor::new(&buf[..]);
     let N = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()?;
     let L = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()?;
-    let num_windows = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()? as usize;
+    let num_windows = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()? as usize - 1;
     let mut window_boundaries = Vec::new();
-    window_boundaries.resize(num_windows, 0);
+    window_boundaries.resize(num_windows + 1, 0);
     rdr.read_i32_into::<byteorder::NativeEndian>(&mut window_boundaries).into_diagnostic()?;
-    eprintln!("N: {}, L: {}, num_windows: {}", N, L, num_windows);
     eprintln!("---------------------------------------------------------");
     eprintln!("Painting sequences...");
     let basename = output.join(format!("chunk_{}", chunk_index));

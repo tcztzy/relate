@@ -645,7 +645,7 @@ FastPainting::PaintSteppingStones(const Data& data, const char* basename, size_t
     pfiles[w] = fopen(filename, "wb");
     assert(pfiles[w] != NULL);
   }
-  std::vector<int> _window_boundaries(window_boundaries, window_boundaries + num_windows);
+  std::vector<int> _window_boundaries(window_boundaries, window_boundaries + num_windows + 1);
   _PaintSteppingStones(data, _window_boundaries, pfiles, k, prior_theta, prior_ntheta, theta_ratio, log_ntheta, log_small, lower_rescaling_threshold, upper_rescaling_threshold);
 }
 
