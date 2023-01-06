@@ -7,8 +7,10 @@ edition = "2021"
 
 [dependencies]
 autocxx = "0.23.1"
+byteorder = "1.4.3"
 clap = { version = "4.0.32", features = ["derive"] }
 cxx = { version = "1.0.85", features = ["c++17"] }
+libc = "0.2.139"
 miette = { version = "5", features = ["fancy"] }
 
 [build-dependencies]

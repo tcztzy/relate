@@ -1,15 +1,5 @@
-use autocxx::prelude::*;
 use clap::{Parser, Subcommand};
-use cxx::let_cxx_string;
 use std::path::PathBuf;
-
-include_cpp! {
-    #include "data.hpp"
-    #include "usage.hpp"
-    safety!(unsafe_ffi)
-    generate!("Data")
-    generate!("ResourceUsage")
-}
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -33,7 +23,7 @@ enum Mode {
         map: PathBuf,
         /// Optional but recommended. Distance in BP between SNPs. Can be generated using RelateFileFormats. If unspecified, distances in haps are used.
         #[arg(long, value_name = "FILE", default_value = "unspecified")]
-        dist: String,
+        dist: PathBuf,
         /// Filename of output without file extension.
         #[arg(short, long, value_name = "PATH")]
         output: PathBuf,
@@ -44,12 +34,21 @@ enum Mode {
         #[arg(long, value_name = "FLOAT", default_value = "5")]
         memory: f32,
     },
+    /// Use after MakeChunks to paint all haps against all.
+    Paint {
+        /// Index of chunk. (Use when running parts of the algorithm on an individual chunk.)
+        #[arg(long, value_name = "INT")]
+        chunk_index: usize,
+        /// Filename of output without file extension.
+        #[arg(short, long, value_name = "PATH")]
+        output: PathBuf,
+        /// Copying and transition parameters in chromosome painting algorithm. Format: theta rho
+        #[arg(long, value_name = "INT", num_args = 2, default_values = ["0.01", "1."])]
+        painting: Vec<f64>,
+    }
 }
 
 fn main() -> miette::Result<()> {
-    moveit! {
-        let mut data = ffi::Data::new();
-    }
     let args = Args::parse();
     match args.mode {
         Mode::All => {}
@@ -62,27 +61,10 @@ fn main() -> miette::Result<()> {
             transversion,
             memory,
         } => {
-            eprintln!("---------------------------------------------------------");
-            eprintln!("Parsing data..");
-            if output.exists() {
-                panic!("Directory {} already exists. Relate will use this directory to store temporary files.", output.display());
-            }
-            std::fs::create_dir(&output).expect("Fail to create output directory");
-            let_cxx_string!(filename_haps = haps.to_str().unwrap());
-            let_cxx_string!(filename_sample = sample.to_str().unwrap());
-            let_cxx_string!(filename_map = map.to_str().unwrap());
-            let_cxx_string!(filename_dist = dist);
-            let_cxx_string!(filename_out = output.to_str().unwrap());
-            data.as_mut().MakeChunks(
-                &filename_haps,
-                &filename_sample,
-                &filename_map,
-                &filename_dist,
-                &filename_out,
-                !transversion,
-                memory,
-            );
-            ffi::ResourceUsage();
+            relate::pipelines::make_chunks(haps, sample, map, dist, output, transversion, memory)?;
+        }
+        Mode::Paint { chunk_index, output, painting} => {
+            relate::pipelines::paint(&output, chunk_index, painting)?;
         }
     }
     Ok(())
