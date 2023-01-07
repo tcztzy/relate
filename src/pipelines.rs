@@ -1,5 +1,5 @@
 use autocxx::prelude::moveit;
-use crate::{ffi::{self, FastPainting}, resource_usage};
+use crate::{ffi, resource_usage};
 use cxx::let_cxx_string;
 use miette::IntoDiagnostic;
 use std::io::Read;
@@ -49,12 +49,10 @@ pub fn paint(output: &PathBuf, chunk_index: usize, painting: Vec<f64>) -> miette
     let parameters = output.join(format!("parameters_c{}.bin", chunk_index));
     let mut file = std::fs::File::open(parameters).into_diagnostic()?;
     let mut buf = Vec::new();
-    let n = file.read_to_end(&mut buf).into_diagnostic()?;
-    // let s = structure!("=3i");
-    // let (N, L, num_windows) = s.unpack(&buf[..12]).into_diagnostic()?;
+    let _n = file.read_to_end(&mut buf).into_diagnostic()?;
     let mut rdr = std::io::Cursor::new(&buf[..]);
-    let N = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()?;
-    let L = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()?;
+    let num_samples = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()?;
+    let _num_alleles = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()?;
     let num_windows = rdr.read_i32::<byteorder::NativeEndian>().into_diagnostic()? as usize - 1;
     let mut window_boundaries = Vec::new();
     window_boundaries.resize(num_windows + 1, 0);
@@ -78,9 +76,9 @@ pub fn paint(output: &PathBuf, chunk_index: usize, painting: Vec<f64>) -> miette
     let paint_dir = chunk_dir.join("paint");
     std::fs::create_dir_all(&paint_dir).into_diagnostic()?;
     let data_basename = paint_dir.join("relate");
-    for hap in 0..N as i32 {
+    for hap in 0..num_samples as i32 {
         moveit! {
-            let mut painter = ffi::FastPainting::new(N as usize, 0.001);
+            let mut painter = ffi::FastPainting::new(num_samples as usize, 0.001);
         }
         let basename = std::ffi::CString::new(data_basename.to_str().unwrap()).into_diagnostic()?;
         unsafe {
