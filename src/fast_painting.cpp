@@ -642,7 +642,7 @@ FastPainting::PaintSteppingStones(const Data& data, const char* basename, size_t
   std::vector<FILE*> pfiles(num_windows);
   for(int w = 0; w < num_windows; w++){
     snprintf(filename, sizeof(char) * 1024, "%s_%i.bin", basename, w);
-    pfiles[w] = fopen(filename, "wb");
+    pfiles[w] = fopen(filename, "ab");
     assert(pfiles[w] != NULL);
   }
   std::vector<int> _window_boundaries(window_boundaries, window_boundaries + num_windows + 1);

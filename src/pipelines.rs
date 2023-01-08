@@ -75,6 +75,13 @@ pub fn paint(output: &PathBuf, chunk_index: usize, painting: Vec<f64>) -> miette
     let chunk_dir = output.join(format!("chunk_{}", chunk_index));
     let paint_dir = chunk_dir.join("paint");
     std::fs::create_dir_all(&paint_dir).into_diagnostic()?;
+    for path in std::fs::read_dir(&paint_dir).unwrap() {
+        let path = path.unwrap().path();
+        let extension = path.extension().unwrap();
+        if extension == std::ffi::OsStr::new("bin") {
+            std::fs::remove_file(path).into_diagnostic()?;
+        }
+    }
     let data_basename = paint_dir.join("relate");
     for hap in 0..num_samples as i32 {
         moveit! {
