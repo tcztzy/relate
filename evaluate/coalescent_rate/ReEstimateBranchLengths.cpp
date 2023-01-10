@@ -12,6 +12,7 @@
 #include "anc.hpp"
 #include "branch_length_estimator.hpp"
 #include "anc_builder.hpp"
+#include "tree_builder.hpp"
 #include "usage.hpp"
 
 void ShowProgress(int progress){
