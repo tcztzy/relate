@@ -152,6 +152,7 @@ pub fn build_topology(
     output: &PathBuf,
     chunk_index: usize,
     section_slice: Option<(usize, usize)>,
+    efficient_population_size: i32,
     painting: Option<Vec<f64>>,
     seed: Option<u64>,
     anc_allele_unknown: bool,
@@ -184,6 +185,7 @@ pub fn build_topology(
     }
     let_cxx_string!(name = basename.join("paint/relate").to_str().unwrap());
     data.as_mut().SetName(&name);
+    data.as_mut().SetEfficientPopulationSize(c_int(efficient_population_size * 50));
     if let Some(painting) = painting {
         data.as_mut().SetPainting(painting[0], painting[1]);
     }

@@ -113,6 +113,10 @@ Data::Data(const char* filename_dist, const char* filename_param, int Ne, double
   ntheta   = 1.0 - theta;
 }
 
+void Data::SetEfficientPopulationSize(const int Ne) {
+  this->Ne = Ne;
+}
+
 void Data::SetName(const std::string &name) {
   this->name = name;
 }

@@ -59,6 +59,9 @@ enum Mode {
         /// Index of last section to infer. (Use when running parts of algorithm on an individual chunk.)
         #[arg(long, requires = "first_section", value_name = "INT")]
         last_section: Option<usize>,
+        /// Effective population size.
+        #[arg(short = 'N', long = "efficientN", value_name = "INT", default_value = "0")]
+        efficient_population_size: i32,
         /// Copying and transition parameters in chromosome painting algorithm. Format: theta rho
         #[arg(long, value_name = "INT", num_args = 2, default_values = ["0.01", "1."])]
         painting: Vec<f64>,
@@ -104,6 +107,7 @@ fn main() -> miette::Result<()> {
             output,
             first_section,
             last_section,
+            efficient_population_size,
             painting,
             seed,
             anc_allele_unknown,
@@ -119,6 +123,7 @@ fn main() -> miette::Result<()> {
                 &output,
                 chunk_index,
                 section_slice,
+                efficient_population_size,
                 Some(painting),
                 seed,
                 anc_allele_unknown,
