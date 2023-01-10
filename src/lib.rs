@@ -2,11 +2,18 @@ pub mod pipelines;
 use autocxx::prelude::include_cpp;
 
 include_cpp! {
+    #include "anc.hpp"
+    #include "anc_builder.hpp"
     #include "data.hpp"
     #include "fast_painting.hpp"
+    #include "ffi.hpp"
     safety!(unsafe_ffi)
+    generate!("AncesTree")
+    generate!("AncesTreeBuilder")
     generate!("Data")
     generate_pod!("FastPainting")
+    generate!("Mutations")
+    generate!("construct_vector_double")
 }
 
 /// Print resource usage

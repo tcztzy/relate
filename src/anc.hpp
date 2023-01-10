@@ -223,6 +223,8 @@ class AncesTree{
     CorrTrees seq; //starting position on the genome 
     int N, L;
 
+    AncesTree() {}
+
     void Read(igzstream& is);
     void Read(const std::string& filename); //read anc in long-format. 
     void ReadBin(FILE* pfile);

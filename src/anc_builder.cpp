@@ -1,6 +1,7 @@
 #include "anc_builder.hpp"
 #include "fast_log.hpp"
 #include "fast_painting.hpp"
+#include "mutations.hpp"
 #include "tree_builder.hpp"
 
 //////////////////////// DistanceMeasure //////////////////
@@ -255,6 +256,10 @@ AncesTreeBuilder::AncesTreeBuilder(Data& data, std::vector<double>& i_sample_age
 
 
 //////////// Members
+
+Mutations &AncesTreeBuilder::GetMutations() {
+  return this->mutations;
+}
 
 void 
 AncesTreeBuilder::BuildTopology(const int section, const int section_startpos, const int section_endpos, Data& data, AncesTree& anc, const int seed, const bool ancestral_state, const int fb){

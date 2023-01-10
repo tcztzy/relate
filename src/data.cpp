@@ -113,6 +113,9 @@ Data::Data(const char* filename_dist, const char* filename_param, int Ne, double
   ntheta   = 1.0 - theta;
 }
 
+void Data::SetName(const std::string &name) {
+  this->name = name;
+}
 
 void Data::SetPainting(double theta, double rho) {
   this->theta = theta;
