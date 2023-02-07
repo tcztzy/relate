@@ -1,6 +1,7 @@
 #ifndef COLLAPSED_MATRIX_HPP
 #define COLLAPSED_MATRIX_HPP
 
+#include <cassert>
 #include <vector>
 
 //modified from http://upcoder.com/2/efficient-vectors-of-vectors
