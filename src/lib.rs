@@ -12,6 +12,7 @@ include_cpp! {
     generate!("AncesTreeBuilder")
     generate!("Data")
     generate_pod!("FastPainting")
+    generate!("FindEquivalentBranches")
     generate!("Mutations")
     generate!("construct_vector_double")
 }

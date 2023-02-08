@@ -119,7 +119,7 @@ int main(int argc, char* argv[]){
   }else if(!mode.compare("FindEquivalentBranches")){
  
     if(result.count("chunk_index") || result.count("output")){
-      FindEquivalentBranches(result, help_text, result["chunk_index"].as<int>());
+      FindEquivalentBranches(result["output"].as<std::string>(), result["chunk_index"].as<int>());
     }else{
       std::cerr << "Please specify the chunk_index, and output" << std::endl;
       exit(1);
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]){
 
       Paint(result, c);
       BuildTopology(result, c, 0, num_sections-1);
-      FindEquivalentBranches(result, help_text, c);
+      FindEquivalentBranches(result["output"].as<std::string>(), c);
       GetBranchLengths(result, help_text, c, 0, num_sections-1);
       CombineSections(result, help_text, c);
 

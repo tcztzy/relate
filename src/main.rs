@@ -9,6 +9,7 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Mode {
+    /// Executes all stages of the algorithm.
     All,
     /// Use to make smaller chunks from the data.
     MakeChunks {
@@ -46,6 +47,7 @@ enum Mode {
         #[arg(long, value_name = "INT", num_args = 2, default_values = ["0.01", "1."])]
         painting: Vec<f64>,
     },
+    /// Use after Paint to build tree topologies in a small chunk specified by first section - last_section.
     BuildTopology {
         /// Index of chunk. (Use when running parts of the algorithm on an individual chunk.)
         #[arg(long, value_name = "INT")]
@@ -60,7 +62,12 @@ enum Mode {
         #[arg(long, requires = "first_section", value_name = "INT")]
         last_section: Option<usize>,
         /// Effective population size.
-        #[arg(short = 'N', long = "efficientN", value_name = "INT", default_value = "0")]
+        #[arg(
+            short = 'N',
+            long = "efficientN",
+            value_name = "INT",
+            default_value = "0"
+        )]
         efficient_population_size: i32,
         /// Copying and transition parameters in chromosome painting algorithm. Format: theta rho
         #[arg(long, value_name = "INT", num_args = 2, default_values = ["0.01", "1."])]
@@ -77,6 +84,15 @@ enum Mode {
         /// Specify if ancestral allele is unknown.
         #[arg(long, default_value = "false")]
         anc_allele_unknown: bool,
+    },
+    /// Use after BuildTopology to find equivalent branches in adjacent trees. Output written as bin file.
+    FindEquivalentBranches {
+        /// Filename of output without file extension.
+        #[arg(short, long, value_name = "PATH")]
+        output: PathBuf,
+        /// Index of chunk. (Use when running parts of the algorithm on an individual chunk.)
+        #[arg(long, value_name = "INT")]
+        chunk_index: usize,
     },
 }
 
@@ -130,6 +146,9 @@ fn main() -> miette::Result<()> {
                 sample_ages.as_ref(),
                 fb,
             )?;
+        }
+        Mode::FindEquivalentBranches { output, chunk_index } => {
+            relate::pipelines::find_equivalent_branches(&output, chunk_index)?;
         }
     }
     Ok(())

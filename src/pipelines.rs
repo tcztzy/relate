@@ -255,3 +255,8 @@ pub fn build_topology(
     resource_usage();
     Ok(())
 }
+
+pub fn find_equivalent_branches(output: &PathBuf, chunk_index: usize) -> miette::Result<()> {
+    
+    Ok(())
+}
