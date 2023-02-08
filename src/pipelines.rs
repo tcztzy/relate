@@ -282,7 +282,11 @@ pub fn infer_branch_lengths(
     } else {
         std::ptr::null()
     } as *const CxxString;
-    let seed = if let Some(seed) = seed { &c_int(seed as i32) } else { std::ptr::null() };
+    let seed = if let Some(seed) = seed {
+        &c_int(seed as i32)
+    } else {
+        std::ptr::null()
+    };
     let parameters_path = output.join(format!("parameters_c{}.bin", chunk_index));
     let parameters = read_parameters_bin(&parameters_path)?;
     let (first_section, last_section) = section_slice.unwrap_or((0, parameters.num_windows - 1));
@@ -302,7 +306,36 @@ pub fn infer_branch_lengths(
     Ok(())
 }
 
-pub fn combine_sections(output: &PathBuf, chunk_index: usize, effective_population_size: f64) -> miette::Result<()> {
-    ffi::CombineSections(output.to_str().unwrap(), c_int(chunk_index as i32), c_int(effective_population_size as i32));
+pub fn combine_sections(
+    output: &PathBuf,
+    chunk_index: usize,
+    effective_population_size: f64,
+) -> miette::Result<()> {
+    ffi::CombineSections(
+        output.to_str().unwrap(),
+        c_int(chunk_index as i32),
+        c_int(effective_population_size as i32),
+    );
+    Ok(())
+}
+
+pub fn finalize(
+    output: &PathBuf,
+    sample_ages_path: Option<&PathBuf>,
+    annot: Option<&PathBuf>,
+) -> miette::Result<()> {
+    let sample_ages = if let Some(sample_ages) = sample_ages_path {
+        sample_ages.to_str().unwrap().as_ptr()
+    } else {
+        std::ptr::null()
+    } as *const CxxString;
+    let annot = if let Some(annot) = annot {
+        annot.to_str().unwrap().as_ptr()
+    } else {
+        std::ptr::null()
+    } as *const CxxString;
+    unsafe {
+        ffi::Finalize(output.to_str().unwrap(), sample_ages, annot);
+    }
     Ok(())
 }

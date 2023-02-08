@@ -76,7 +76,7 @@ enum Mode {
         #[arg(long, value_name = "INT")]
         seed: Option<u64>,
         /// Filename of file containing sample ages (one per line).
-        #[arg(long, value_name = "PATH")]
+        #[arg(long, value_name = "FILE")]
         sample_ages: Option<PathBuf>,
         /// Force build a new tree every x bases.
         #[arg(long, value_name = "FLOAT", default_value_t = 0)]
@@ -122,7 +122,7 @@ enum Mode {
         )]
         effective_population_size: f64,
         /// Filename of file containing sample ages (one per line).
-        #[arg(long, value_name = "PATH")]
+        #[arg(long, value_name = "FILE")]
         sample_ages: Option<PathBuf>,
         /// Filename of file containing coalescent rates. If specified, it will overwrite --effectiveN.
         #[arg(long, value_name = "FILE")]
@@ -149,6 +149,18 @@ enum Mode {
             default_value_t = 30000.
         )]
         effective_population_size: f64,
+    },
+    /// Use at the end to finalize results. This will summarize all sections into one file.
+    Finalize {
+        /// Filename of output without file extension.
+        #[arg(short, long, value_name = "PATH")]
+        output: PathBuf,
+        /// Filename of file containing sample ages (one per line).
+        #[arg(long, value_name = "FILE")]
+        sample_ages: Option<PathBuf>,
+        /// Filename of file containing additional annotation of snps. Can be generated using RelateFileFormats.
+        #[arg(long, value_name = "FILE")]
+        annot: Option<PathBuf>,
     },
 }
 
@@ -235,9 +247,20 @@ fn main() -> miette::Result<()> {
                 coal.as_ref(),
                 seed,
             )?;
-        },
-        Mode::CombineSections { output, chunk_index, effective_population_size } => {
+        }
+        Mode::CombineSections {
+            output,
+            chunk_index,
+            effective_population_size,
+        } => {
             relate::pipelines::combine_sections(&output, chunk_index, effective_population_size)?;
+        }
+        Mode::Finalize {
+            output,
+            sample_ages,
+            annot,
+        } => {
+            relate::pipelines::finalize(&output, sample_ages.as_ref(), annot.as_ref())?;
         }
     }
     Ok(())

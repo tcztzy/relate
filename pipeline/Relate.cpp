@@ -177,9 +177,9 @@ int main(int argc, char* argv[]){
     }
 
   }else if(!mode.compare("Finalize")){
-  
-    Finalize(result, help_text);
-  
+    const std::string *sample_ages = result.count("sample_ages") ? &result["sample_ages"].as<std::string>() : NULL;
+    const std::string *annot = result.count("annot") ? &result["annot"].as<std::string>() : NULL;
+    Finalize(result["output"].as<std::string>(), sample_ages, annot);
   }else if(!mode.compare("Clean")){
   
     Clean(result, help_text);
@@ -292,7 +292,9 @@ int main(int argc, char* argv[]){
     }
 
     if(!result.count("chunk_index")){
-      Finalize(result, help_text);
+      const std::string *sample_ages = result.count("sample_ages") ? &result["sample_ages"].as<std::string>() : NULL;
+      const std::string *annot = result.count("annot") ? &result["annot"].as<std::string>() : NULL;
+      Finalize(result["output"].as<std::string>(), sample_ages, annot);
     }
 
     std::cerr << "---------------------------------------------------------" << std::endl;

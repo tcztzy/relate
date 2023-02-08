@@ -18,6 +18,7 @@ fn main() -> miette::Result<()> {
             "pipeline/FindEquivalentBranches.cpp",
             "pipeline/InferBranchLengths.cpp",
             "pipeline/CombineSections.cpp",
+            "pipeline/Finalize.cpp",
         ])
         .compile("relate");
     println!("cargo:rustc-link-lib=z");
@@ -39,5 +40,6 @@ fn main() -> miette::Result<()> {
     println!("cargo:rerun-if-changed=pipeline/FindEquivalentBranches.cpp");
     println!("cargo:rerun-if-changed=pipeline/InferBranchLengths.cpp");
     println!("cargo:rerun-if-changed=pipeline/CombineSections.cpp");
+    println!("cargo:rerun-fi-changed=pipeline/Finalize.cpp");
     Ok(())
 }

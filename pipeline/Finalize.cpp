@@ -1,31 +1,17 @@
 #include <filesystem>
 #include <gzstream.h>
-#include <cxxopts.hpp>
+#include <string>
 
 #include "anc_builder.hpp"
 #include "usage.hpp"
 namespace fs = std::filesystem;
 
 
-int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
-
-  bool help = false;
-  if(!result.count("output")){
-    std::cout << "Not enough arguments supplied." << std::endl;
-    std::cout << "Needed: output. Optional: annot, sample_ages." << std::endl;
-    help = true;
-  }
-  if(result.count("help") || help){
-    std::cout << help_text << std::endl;
-    std::cout << "Use at the end to finalize results. This will summarize all sections into one file." << std::endl;
-    exit(0);
-  }
-
-
+int Finalize(std::string output, const std::string *sample_ages_path, const std::string *annot){
   std::cerr << "---------------------------------------------------------" << std::endl;
   std::cerr << "Finalizing..." << std::endl;
 
-  std::string file_out = result["output"].as<std::string>() + "/";
+  std::string file_out = output + "/";
 
   int N, L, num_chunks;
   double tmp;
@@ -49,8 +35,8 @@ int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
   fclose(fp); 
 
   std::vector<double> sample_ages(N);
-  if(result.count("sample_ages")){
-    igzstream is_ages(result["sample_ages"].as<std::string>());
+  if(sample_ages_path != NULL){
+    igzstream is_ages(*sample_ages_path);
     int i = 0; 
     while(is_ages >> sample_ages[i]){
       i++;
@@ -78,13 +64,13 @@ int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
   FILE* fp_props = fopen((file_out + "props.bin").c_str(), "rb");
   std::ifstream is_annot;
   bool exists_annot = false;
-  if(result.count("annot")){
-    is_annot.open(result["annot"].as<std::string>());
+  if(annot != NULL){
+    is_annot.open(*annot);
     getline(is_annot, line2);
     exists_annot = true;
   }
 
-  os.open(result["output"].as<std::string>() + ".mut");
+  os.open(output + ".mut");
   if(os.fail()){
     std::cerr << "Error while opening file." << std::endl;
     exit(1);
@@ -102,7 +88,7 @@ int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
   //Rest
   for(int c = 0; c < num_chunks; c++){
 
-    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + result["output"].as<std::string>();
+    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + output;
 
     is.open(file_prefix + "_c" + std::to_string(c) + ".mut");
     std::remove((file_prefix + "_c" + std::to_string(c) + ".mut").c_str());
@@ -183,7 +169,7 @@ int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
 
   //////////////////////////////////////////////////
 
-  std::string filename_os = result["output"].as<std::string>() + ".anc";
+  std::string filename_os = output + ".anc";
   FILE *pfile = std::fopen(filename_os.c_str(), "w");
 
   if(pfile == NULL){
@@ -215,7 +201,7 @@ int Finalize(cxxopts::ParseResult& result, const std::string& help_text){
       end_chunk -= overlap_chunk_size;
     }
 
-    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + result["output"].as<std::string>();
+    std::string file_prefix = file_out + "chunk_" + std::to_string(c) + "/" + output;
 
     int position;
     AncesTree anc;
