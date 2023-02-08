@@ -6,7 +6,6 @@
 #include <sys/types.h> // required for stat.h
 #include <sys/stat.h> // no clue why required -- man pages say so
 #include <string>
-#include <cxxopts.hpp>
 
 #include "data.hpp"
 #include "anc.hpp"
@@ -15,24 +14,11 @@
 
 
 
-int CombineSections(cxxopts::ParseResult& result, const std::string& help_text, int chunk_index = 0){
-
-  bool help = false;
-  if(!result.count("output")){
-    std::cout << "Not enough arguments supplied." << std::endl;
-    std::cout << "Needed: output. Optional: effectiveN (should be consistent across Relate run)" << std::endl;
-    help = true;
-  }
-  if(result.count("help") || help){
-    std::cout << help_text << std::endl;
-    std::cout << "Use after InferBranchLengths to combine files containing trees in small chunks to one file for a section." << std::endl;
-    exit(0);
-  }
-
+int CombineSections(std::string output, int chunk_index = 0, int Ne = 30000){
   std::cerr << "---------------------------------------------------------" << std::endl;
   std::cerr << "Combining AncesTrees in Sections..." << std::endl;
 
-  std::string file_out = result["output"].as<std::string>() + "/";
+  std::string file_out = output + "/";
 
   int N, L, num_windows;
   FILE* fp = fopen((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), "r");
@@ -43,15 +29,12 @@ int CombineSections(cxxopts::ParseResult& result, const std::string& help_text, 
   fclose(fp);
   num_windows--;
 
-  int Ne = 30000;
-  if(result.count("effectiveN")) Ne = (int) result["effectiveN"].as<float>();
-
   //////////////////////////////////
   //Parse Data
 
   Data data(N, L, Ne); //struct data is defined in data.hpp
   const std::string dirname = file_out + "chunk_" + std::to_string(chunk_index) + "/";
-  const std::string output_file = dirname + result["output"].as<std::string>();
+  const std::string output_file = dirname + output;
 
   ///////////////////////////////////////// Combine AncesTrees /////////////////////////
 

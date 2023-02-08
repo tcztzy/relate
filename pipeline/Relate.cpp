@@ -170,7 +170,7 @@ int main(int argc, char* argv[]){
   }else if(!mode.compare("CombineSections")){
 
     if(result.count("chunk_index")){
-      CombineSections(result, help_text, result["chunk_index"].as<int>());
+      CombineSections(result["output"].as<std::string>(), result["chunk_index"].as<int>(), result.count("effectiveN") ? result["effectiveN"].as<int>() : 30000);
     }else{
       std::cerr << "Please specify the chunk_index" << std::endl;
       exit(1);
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]){
       const std::string *sample_ages = result.count("sample_ages") ? &result["sample_ages"].as<std::string>() : NULL;
       const int *seed = result.count("seed") ? &result["seed"].as<int>() : NULL;
       GetBranchLengths(result["output"].as<std::string>(), result["chunk_index"].as<int>(), 0, num_sections-1, result["mutation_rate"].as<double>(), effectiveN, sample_ages, coal, seed);
-      CombineSections(result, help_text, c);
+      CombineSections(result["output"].as<std::string>(), c, *effectiveN);
 
     }
 

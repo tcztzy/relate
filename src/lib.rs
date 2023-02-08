@@ -10,6 +10,7 @@ include_cpp! {
     safety!(unsafe_ffi)
     generate!("AncesTree")
     generate!("AncesTreeBuilder")
+    generate!("CombineSections")
     generate!("Data")
     generate_pod!("FastPainting")
     generate!("FindEquivalentBranches")

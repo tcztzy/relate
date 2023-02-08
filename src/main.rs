@@ -131,6 +131,25 @@ enum Mode {
         #[arg(long, value_name = "INT")]
         seed: Option<u64>,
     },
+    /// Use after InferBranchLengths to combine files containing trees in small chunks to one file for a section.
+    CombineSections {
+        /// Filename of output without file extension.
+        #[arg(short, long, value_name = "PATH")]
+        output: PathBuf,
+        /// Index of chunk. (Use when running parts of the algorithm on an individual chunk.)
+        #[arg(long, value_name = "INT")]
+        chunk_index: usize,
+        /// Effective population size.
+        #[arg(
+            short = 'N',
+            long,
+            visible_alias = "effectiveN",
+            value_name = "FLOAT",
+            required_unless_present = "coal",
+            default_value_t = 30000.
+        )]
+        effective_population_size: f64,
+    },
 }
 
 fn main() -> miette::Result<()> {
@@ -216,6 +235,9 @@ fn main() -> miette::Result<()> {
                 coal.as_ref(),
                 seed,
             )?;
+        },
+        Mode::CombineSections { output, chunk_index, effective_population_size } => {
+            relate::pipelines::combine_sections(&output, chunk_index, effective_population_size)?;
         }
     }
     Ok(())

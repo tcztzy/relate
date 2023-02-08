@@ -17,6 +17,7 @@ fn main() -> miette::Result<()> {
             "subprojects/gzstream/gzstream.C",
             "pipeline/FindEquivalentBranches.cpp",
             "pipeline/InferBranchLengths.cpp",
+            "pipeline/CombineSections.cpp",
         ])
         .compile("relate");
     println!("cargo:rustc-link-lib=z");
@@ -37,5 +38,6 @@ fn main() -> miette::Result<()> {
     println!("cargo:rerun-if-changed=src/branch_length_estimator.hpp");
     println!("cargo:rerun-if-changed=pipeline/FindEquivalentBranches.cpp");
     println!("cargo:rerun-if-changed=pipeline/InferBranchLengths.cpp");
+    println!("cargo:rerun-if-changed=pipeline/CombineSections.cpp");
     Ok(())
 }

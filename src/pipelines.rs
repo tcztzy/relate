@@ -301,3 +301,8 @@ pub fn infer_branch_lengths(
     }
     Ok(())
 }
+
+pub fn combine_sections(output: &PathBuf, chunk_index: usize, effective_population_size: f64) -> miette::Result<()> {
+    ffi::CombineSections(output.to_str().unwrap(), c_int(chunk_index as i32), c_int(effective_population_size as i32));
+    Ok(())
+}
