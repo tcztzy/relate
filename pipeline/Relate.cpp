@@ -143,7 +143,11 @@ int main(int argc, char* argv[]){
     
       int first_section = result["first_section"].as<int>();
       int last_section  = result["last_section"].as<int>();
-      GetBranchLengths(result, help_text, result["chunk_index"].as<int>(), first_section, last_section);
+      const double *effectiveN = result.count("effectiveN") ? &result["effectiveN"].as<double>() : NULL;
+      const std::string *coal = result.count("coal") ? &result["coal"].as<std::string>() : NULL;
+      const std::string *sample_ages = result.count("sample_ages") ? &result["sample_ages"].as<std::string>() : NULL;
+      const int *seed = result.count("seed") ? &result["seed"].as<int>() : NULL;
+      GetBranchLengths(result["output"].as<std::string>(), result["chunk_index"].as<int>(), first_section, last_section, result["mutation_rate"].as<double>(), effectiveN, sample_ages, coal, seed);
 
     }else{
     
@@ -156,8 +160,11 @@ int main(int argc, char* argv[]){
       fclose(fp);
       Data data(N,L);
       num_sections--;
-
-      GetBranchLengths(result, help_text, result["chunk_index"].as<int>(), 0, num_sections-1);
+      const double *effectiveN = result.count("effectiveN") ? &result["effectiveN"].as<double>() : NULL;
+      const std::string *coal = result.count("coal") ? &result["coal"].as<std::string>() : NULL;
+      const std::string *sample_ages = result.count("sample_ages") ? &result["sample_ages"].as<std::string>() : NULL;
+      const int *seed = result.count("seed") ? &result["seed"].as<int>() : NULL;
+      GetBranchLengths(result["output"].as<std::string>(), result["chunk_index"].as<int>(), 0, num_sections-1, result["mutation_rate"].as<double>(), effectiveN, sample_ages, coal, seed);
     }
 
   }else if(!mode.compare("CombineSections")){
@@ -275,7 +282,11 @@ int main(int argc, char* argv[]){
       Paint(result, c);
       BuildTopology(result, c, 0, num_sections-1);
       FindEquivalentBranches(result["output"].as<std::string>(), c);
-      GetBranchLengths(result, help_text, c, 0, num_sections-1);
+      const double *effectiveN = result.count("effectiveN") ? &result["effectiveN"].as<double>() : NULL;
+      const std::string *coal = result.count("coal") ? &result["coal"].as<std::string>() : NULL;
+      const std::string *sample_ages = result.count("sample_ages") ? &result["sample_ages"].as<std::string>() : NULL;
+      const int *seed = result.count("seed") ? &result["seed"].as<int>() : NULL;
+      GetBranchLengths(result["output"].as<std::string>(), result["chunk_index"].as<int>(), 0, num_sections-1, result["mutation_rate"].as<double>(), effectiveN, sample_ages, coal, seed);
       CombineSections(result, help_text, c);
 
     }

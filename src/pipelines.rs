@@ -1,7 +1,7 @@
 use crate::{ffi, resource_usage};
 use autocxx::{c_int, prelude::moveit};
 use byteorder::{NativeEndian, ReadBytesExt};
-use cxx::let_cxx_string;
+use cxx::{let_cxx_string, CxxString};
 use miette::IntoDiagnostic;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use std::io::{BufRead, Read, Write};
@@ -152,7 +152,7 @@ pub fn build_topology(
     output: &PathBuf,
     chunk_index: usize,
     section_slice: Option<(usize, usize)>,
-    efficient_population_size: i32,
+    effective_population_size: i32,
     painting: Option<Vec<f64>>,
     seed: Option<u64>,
     anc_allele_unknown: bool,
@@ -185,7 +185,8 @@ pub fn build_topology(
     }
     let_cxx_string!(name = basename.join("paint/relate").to_str().unwrap());
     data.as_mut().SetName(&name);
-    data.as_mut().SetEfficientPopulationSize(c_int(efficient_population_size * 50));
+    data.as_mut()
+        .SetEfficientPopulationSize(c_int(effective_population_size * 50));
     if let Some(painting) = painting {
         data.as_mut().SetPainting(painting[0], painting[1]);
     }
@@ -258,5 +259,45 @@ pub fn build_topology(
 
 pub fn find_equivalent_branches(output: &PathBuf, chunk_index: usize) -> miette::Result<()> {
     ffi::FindEquivalentBranches(output.to_str().unwrap(), c_int(chunk_index as i32));
+    Ok(())
+}
+
+pub fn infer_branch_lengths(
+    output: &PathBuf,
+    chunk_index: usize,
+    section_slice: Option<(usize, usize)>,
+    mutation_rate: f64,
+    effective_population_size: Option<f64>,
+    sample_ages_path: Option<&PathBuf>,
+    coal: Option<&PathBuf>,
+    seed: Option<u64>,
+) -> miette::Result<()> {
+    let sample_ages = if let Some(sample_ages) = sample_ages_path {
+        sample_ages.to_str().unwrap().as_ptr()
+    } else {
+        std::ptr::null()
+    } as *const CxxString;
+    let coal = if let Some(coal) = coal {
+        coal.to_str().unwrap().as_ptr()
+    } else {
+        std::ptr::null()
+    } as *const CxxString;
+    let seed = if let Some(seed) = seed { &c_int(seed as i32) } else { std::ptr::null() };
+    let parameters_path = output.join(format!("parameters_c{}.bin", chunk_index));
+    let parameters = read_parameters_bin(&parameters_path)?;
+    let (first_section, last_section) = section_slice.unwrap_or((0, parameters.num_windows - 1));
+    unsafe {
+        ffi::GetBranchLengths(
+            output.to_str().unwrap(),
+            c_int(chunk_index as i32),
+            c_int(first_section as i32),
+            c_int(last_section as i32),
+            mutation_rate,
+            &effective_population_size.unwrap(),
+            sample_ages,
+            coal,
+            seed,
+        );
+    }
     Ok(())
 }

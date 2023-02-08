@@ -68,7 +68,7 @@ enum Mode {
             value_name = "INT",
             default_value = "0"
         )]
-        efficient_population_size: i32,
+        effective_population_size: i32,
         /// Copying and transition parameters in chromosome painting algorithm. Format: theta rho
         #[arg(long, value_name = "INT", num_args = 2, default_values = ["0.01", "1."])]
         painting: Vec<f64>,
@@ -79,10 +79,10 @@ enum Mode {
         #[arg(long, value_name = "PATH")]
         sample_ages: Option<PathBuf>,
         /// Force build a new tree every x bases.
-        #[arg(long, value_name = "FLOAT", default_value = "0")]
+        #[arg(long, value_name = "FLOAT", default_value_t = 0)]
         fb: i32,
         /// Specify if ancestral allele is unknown.
-        #[arg(long, default_value = "false")]
+        #[arg(long, default_value_t = false)]
         anc_allele_unknown: bool,
     },
     /// Use after BuildTopology to find equivalent branches in adjacent trees. Output written as bin file.
@@ -93,6 +93,43 @@ enum Mode {
         /// Index of chunk. (Use when running parts of the algorithm on an individual chunk.)
         #[arg(long, value_name = "INT")]
         chunk_index: usize,
+    },
+    /// Use after FindEquivalentBranches to infer branch lengths.
+    InferBranchLengths {
+        /// Filename of output without file extension.
+        #[arg(short, long, value_name = "PATH")]
+        output: PathBuf,
+        /// Index of chunk. (Use when running parts of the algorithm on an individual chunk.)
+        #[arg(long, value_name = "INT")]
+        chunk_index: usize,
+        /// Index of first section to infer. (Use when running parts of algorithm on an individual chunk.)
+        #[arg(long, requires = "last_section", value_name = "INT")]
+        first_section: Option<usize>,
+        /// Index of last section to infer. (Use when running parts of algorithm on an individual chunk.)
+        #[arg(long, requires = "first_section", value_name = "INT")]
+        last_section: Option<usize>,
+        /// Mutation rate.
+        #[arg(long, value_name = "FLOAT")]
+        mutation_rate: f64,
+        /// Effective population size.
+        #[arg(
+            short = 'N',
+            long,
+            visible_alias = "effectiveN",
+            value_name = "FLOAT",
+            required_unless_present = "coal",
+            default_value_t = 30000.
+        )]
+        effective_population_size: f64,
+        /// Filename of file containing sample ages (one per line).
+        #[arg(long, value_name = "PATH")]
+        sample_ages: Option<PathBuf>,
+        /// Filename of file containing coalescent rates. If specified, it will overwrite --effectiveN.
+        #[arg(long, value_name = "FILE")]
+        coal: Option<PathBuf>,
+        /// Seed for MCMC in branch lengths estimation.
+        #[arg(long, value_name = "INT")]
+        seed: Option<u64>,
     },
 }
 
@@ -123,7 +160,7 @@ fn main() -> miette::Result<()> {
             output,
             first_section,
             last_section,
-            efficient_population_size,
+            effective_population_size,
             painting,
             seed,
             anc_allele_unknown,
@@ -139,7 +176,7 @@ fn main() -> miette::Result<()> {
                 &output,
                 chunk_index,
                 section_slice,
-                efficient_population_size,
+                effective_population_size,
                 Some(painting),
                 seed,
                 anc_allele_unknown,
@@ -152,6 +189,33 @@ fn main() -> miette::Result<()> {
             chunk_index,
         } => {
             relate::pipelines::find_equivalent_branches(&output, chunk_index)?;
+        }
+        Mode::InferBranchLengths {
+            output,
+            chunk_index,
+            first_section,
+            last_section,
+            mutation_rate,
+            effective_population_size,
+            sample_ages,
+            coal,
+            seed,
+        } => {
+            let section_slice = if let Some(first_section) = first_section {
+                Some((first_section, last_section.unwrap()))
+            } else {
+                None
+            };
+            relate::pipelines::infer_branch_lengths(
+                &output,
+                chunk_index,
+                section_slice,
+                mutation_rate,
+                Some(effective_population_size),
+                sample_ages.as_ref(),
+                coal.as_ref(),
+                seed,
+            )?;
         }
     }
     Ok(())

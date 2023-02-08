@@ -13,6 +13,7 @@ include_cpp! {
     generate!("Data")
     generate_pod!("FastPainting")
     generate!("FindEquivalentBranches")
+    generate!("GetBranchLengths")
     generate!("Mutations")
     generate!("construct_vector_double")
 }

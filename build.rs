@@ -13,9 +13,13 @@ fn main() -> miette::Result<()> {
             "src/fast_painting.cpp",
             "src/mutations.cpp",
             "src/tree_builder.cpp",
-            "pipeline/FindEquivalentBranches.cpp"
+            "src/branch_length_estimator.cpp",
+            "subprojects/gzstream/gzstream.C",
+            "pipeline/FindEquivalentBranches.cpp",
+            "pipeline/InferBranchLengths.cpp",
         ])
         .compile("relate");
+    println!("cargo:rustc-link-lib=z");
     println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-changed=src/anc.cpp");
     println!("cargo:rerun-if-changed=src/anc.hpp");
@@ -29,5 +33,9 @@ fn main() -> miette::Result<()> {
     println!("cargo:rerun-if-changed=src/mutations.hpp");
     println!("cargo:rerun-if-changed=src/tree_builder.cpp");
     println!("cargo:rerun-if-changed=src/tree_builder.hpp");
+    println!("cargo:rerun-if-changed=src/branch_length_estimator.cpp");
+    println!("cargo:rerun-if-changed=src/branch_length_estimator.hpp");
+    println!("cargo:rerun-if-changed=pipeline/FindEquivalentBranches.cpp");
+    println!("cargo:rerun-if-changed=pipeline/InferBranchLengths.cpp");
     Ok(())
 }

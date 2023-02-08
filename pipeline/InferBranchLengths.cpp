@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <string>
-#include <cxxopts.hpp>
+#include <sstream>
 
 #include "data.hpp"
 #include "anc.hpp"
@@ -13,35 +13,19 @@
 #include "tree_builder.hpp"
 #include "usage.hpp"
 
-int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text, int chunk_index, int first_section, int last_section){
-
-  bool popsize = false;
-  if(!result.count("effectiveN") && !result.count("coal")) popsize = true;
-  bool help = false;
-  if(popsize || !result.count("mutation_rate") || !result.count("output")){
-    std::cout << "Not enough arguments supplied." << std::endl;
-    std::cout << "Needed: effectiveN, mutation_rate, first_section, last_section, output. Optional: coal, sample_ages." << std::endl;
-    help = true;
-  }
-  if(result.count("help") || help){
-    std::cout << help_text << std::endl;
-    std::cout << "Use after FindEquivalentBranches to infer branch lengths." << std::endl;
-    exit(0);
-  }
-
+int GetBranchLengths(std::string output, int chunk_index, int first_section, int last_section, double mutation_rate, const double *effectiveN, const std::string *sample_ages_path, const std::string *coal, const int *const_seed){
   int seed;
-  if(!result.count("seed")){
+  if(const_seed == NULL){
     seed = std::time(0) + getpid();
   }else{
-    seed = result["seed"].as<int>();
-		srand(seed);
+		srand(*const_seed);
 		for(int i = 0; i < chunk_index + 100*first_section; i++){
 			seed = rand();
 		}
   }
 	srand(seed);
 
-  std::string file_out = result["output"].as<std::string>() + "/";
+  std::string file_out = output + "/";
 
   int N, L, num_windows;
   FILE* fp = fopen((file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), "r");
@@ -52,9 +36,7 @@ int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text,
   fclose(fp);
   num_windows--;
 
-  int Ne = 30000;
-  if(result.count("effectiveN")) Ne = (int) result["effectiveN"].as<float>();
-  double mutation_rate = result["mutation_rate"].as<float>();
+  int Ne = effectiveN == NULL ? 30000 : *effectiveN;
   Data data((file_out + "chunk_" + std::to_string(chunk_index) + ".dist").c_str(), (file_out + "parameters_c" + std::to_string(chunk_index) + ".bin").c_str(), Ne, mutation_rate); //struct data is defined in data.hpp 
   const std::string dirname = file_out + "chunk_" + std::to_string(chunk_index) + "/";
 
@@ -63,13 +45,13 @@ int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text,
  
   bool is_coal = false;
   std::vector<double> epoch, coalescent_rate;
-  if(result.count("coal")){
+  if(coal != NULL){
 
     std::string line;
     double tmp;
     is_coal = true;
     // read epochs and population size 
-    std::ifstream is(result["coal"].as<std::string>()); 
+    std::ifstream is(*coal); 
     getline(is, line);
     getline(is, line);
     std::istringstream is_epoch(line);
@@ -113,8 +95,8 @@ int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text,
   if(first_section >= num_windows) return 1;
 
   std::vector<double> sample_ages(N);
-  if(result.count("sample_ages")){
-    igzstream is_ages(result["sample_ages"].as<std::string>());
+  if(sample_ages_path != NULL){
+    igzstream is_ages(*sample_ages_path);
     int i = 0; 
     while(is_ages >> sample_ages[i]){
       i++;
@@ -141,7 +123,7 @@ int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text,
       //Read anc
       AncesTree anc;
       std::string filename; 
-      filename = dirname + result["output"].as<std::string>() + "_" + std::to_string(section) + ".anc";
+      filename = dirname + output + "_" + std::to_string(section) + ".anc";
       anc.ReadBin(filename);
 
       //Infer branch lengths
@@ -187,7 +169,7 @@ int GetBranchLengths(cxxopts::ParseResult& result, const std::string& help_text,
       //Read anc
       AncesTree anc;
       std::string filename; 
-      filename = dirname + result["output"].as<std::string>() + "_" + std::to_string(section) + ".anc";
+      filename = dirname + output + "_" + std::to_string(section) + ".anc";
       anc.ReadBin(filename);
       anc.sample_ages = sample_ages;
 
