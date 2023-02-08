@@ -13,6 +13,7 @@ fn main() -> miette::Result<()> {
             "src/fast_painting.cpp",
             "src/mutations.cpp",
             "src/tree_builder.cpp",
+            "pipeline/FindEquivalentBranches.cpp"
         ])
         .compile("relate");
     println!("cargo:rerun-if-changed=src/lib.rs");

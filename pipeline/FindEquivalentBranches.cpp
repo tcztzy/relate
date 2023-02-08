@@ -1,6 +1,5 @@
 // Find equivalent branches in neighbouring trees
 
-#include <cxxopts.hpp>
 #include <filesystem>
 #include <iostream>
 

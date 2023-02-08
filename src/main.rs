@@ -147,7 +147,10 @@ fn main() -> miette::Result<()> {
                 fb,
             )?;
         }
-        Mode::FindEquivalentBranches { output, chunk_index } => {
+        Mode::FindEquivalentBranches {
+            output,
+            chunk_index,
+        } => {
             relate::pipelines::find_equivalent_branches(&output, chunk_index)?;
         }
     }

@@ -257,6 +257,6 @@ pub fn build_topology(
 }
 
 pub fn find_equivalent_branches(output: &PathBuf, chunk_index: usize) -> miette::Result<()> {
-    
+    ffi::FindEquivalentBranches(output.to_str().unwrap(), c_int(chunk_index as i32));
     Ok(())
 }
