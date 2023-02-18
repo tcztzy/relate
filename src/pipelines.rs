@@ -77,6 +77,9 @@ pub struct MakeChunks {
 }
 
 impl MakeChunks {
+    pub fn new(haps: PathBuf, sample: PathBuf, map: PathBuf, dist: PathBuf, output: PathBuf, transversion: bool, memory: f32) -> Self {
+        Self { haps, sample, map, dist, output, transversion, memory }
+    }
     pub fn execute(&self) -> Result<()> {
         eprintln!("---------------------------------------------------------");
         eprintln!("Parsing data..");
@@ -124,6 +127,9 @@ pub struct Paint {
 }
 
 impl Paint {
+    pub fn new(chunk_index: usize, output: PathBuf, painting: Vec<f64>) -> Self {
+        Self { chunk_index, output, painting }
+    }
     pub fn execute(&self) -> Result<()> {
         let parameters = read_parameters_bin(
             &self
