@@ -1,7 +1,8 @@
 fn main() -> miette::Result<()> {
-    let build_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    let build_path = build_path.to_str().unwrap();
-    meson::build(".", build_path);
+    std::process::Command::new("meson")
+        .args(&[".", "builddir"])
+        .status()
+        .expect("failed to execute process");
     let src_path = std::path::PathBuf::from("src");
     let gzstream_path = std::path::PathBuf::from("subprojects/gzstream");
     let mut b = autocxx_build::Builder::new("src/lib.rs", &[&src_path, &gzstream_path]).build()?;
